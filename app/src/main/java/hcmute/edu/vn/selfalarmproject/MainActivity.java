@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,8 +18,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -30,8 +27,7 @@ public class MainActivity extends AppCompatActivity {
     FloatingActionButton floatingActionButton;
     DrawerLayout drawerLayout;
     BottomNavigationView bottomNavigationView;
-
-
+    
     NavigationView navigationView;
 
     @Override
@@ -43,44 +39,38 @@ public class MainActivity extends AppCompatActivity {
         floatingActionButton = findViewById(R.id.fab);
         drawerLayout = findViewById(R.id.drawer_layout);
 
-        navigationView = findViewById(R.id.nav_view);
-        if (navigationView != null) {
-            navigationView.setNavigationItemSelectedListener(v -> {
-                int itemId = v.getItemId();
-                Log.e("Test", String.valueOf(itemId));
-                if (itemId == R.id.nav_home || itemId == R.id.menu_home) {
-                    replaceFragment(new HomeFragment());
-                } else if (itemId == R.id.nav_settings) {
-                    replaceFragment(new MusicFragment());
-                } else if (itemId == R.id.nav_logout) {
-                    Toast.makeText(getApplicationContext(), "Logout!", Toast.LENGTH_SHORT).show();
-                }
 
-                if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    drawerLayout.closeDrawer(GravityCompat.START);
-                }
-
-                return true;
-            });
-        } else {
-            Log.e("Test", "NavigationView is null!");
-        }
-        Log.e("Test", "on create!");
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_nav, R.string.close_nav);
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
+        navigationView = findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(v -> {
+            int id = v.getItemId();
+
+            if (id == R.id.nav_home) {
+                replaceFragment(new HomeFragment());
+            } else if (id == R.id.nav_settings) {
+                replaceFragment(new MusicFragment());
+            } else if (id == R.id.nav_logout) {
+                Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
+            }
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
         if (savedInstanceState == null) {
             replaceFragment(new HomeFragment());
             navigationView.setCheckedItem(R.id.nav_home);
         }
-        replaceFragment(new HomeFragment());
+
         bottomNavigationView.setBackground(null);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
-            if (itemId == R.id.nav_home || itemId == R.id.menu_home) {
+            if (itemId == R.id.menu_home) {
                 replaceFragment(new HomeFragment());
             } else if (itemId == R.id.menu_music) {
                 replaceFragment(new MusicFragment());
@@ -99,26 +89,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
 
     private void replaceFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_layout, fragment);
-        fragmentTransaction.commit();
+        if (fragment != null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_layout, fragment)
+                    .commit();
+        }
     }
 
     private void showBottomDialog() {
 
-        final Dialog dialog = new Dialog(this);
+        Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottom_sheet_dialog);
 
@@ -133,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
 
                 dialog.dismiss();
                 Toast.makeText(MainActivity.this, "Upload a Video is clicked", Toast.LENGTH_SHORT).show();
-
             }
         });
 
@@ -164,11 +146,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        dialog.show();
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
+        dialog.show();
 
     }
+
 }
