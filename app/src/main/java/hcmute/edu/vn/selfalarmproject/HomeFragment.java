@@ -1,19 +1,105 @@
 package hcmute.edu.vn.selfalarmproject;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AutoCompleteTextView;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Calendar;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements CalendarAdapter.OnItemListener {
+    private AutoCompleteTextView setDateCalender;
+    private RecyclerView calendarRecyclerView;
+    private LocalDate selectedDate;
+    private View rootView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_home, container, false);
+        rootView = inflater.inflate(R.layout.fragment_home, container, false);
+
+
+        initWidgets();
+        selectedDate = LocalDate.now();
+        setMonthView();
+
+        return rootView;
+    }
+
+    private void initWidgets() {
+        calendarRecyclerView = rootView.findViewById(R.id.calendarRecyclerView);
+        setDateCalender = rootView.findViewById(R.id.setDateCalender);
+
+        setDateCalender.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(setDateCalender.getContext(),
+                    (view, selectedYear, selectedMonth, selectedDay) -> {
+                        selectedDate = LocalDate.of(selectedYear, selectedMonth + 1, day);
+
+                        setDateCalender.setText(monthYearFromDate(selectedDate));
+
+                        setMonthView();
+                    }, year, month, day);
+
+            datePickerDialog.show();
+        });
+    }
+
+    private void setMonthView() {
+        setDateCalender.setText(monthYearFromDate(selectedDate));
+        ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
+
+        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
+        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 7);
+        calendarRecyclerView.setLayoutManager(layoutManager);
+        calendarRecyclerView.setAdapter(calendarAdapter);
+
+    }
+
+
+    private ArrayList<String> daysInMonthArray(LocalDate date) {
+        ArrayList<String> daysInMonthArray = new ArrayList<>();
+        YearMonth yearMonth = YearMonth.from(date);
+
+        int daysInMonth = yearMonth.lengthOfMonth();
+        LocalDate firstOfMonth = date.withDayOfMonth(1);
+        int dayOfWeek = firstOfMonth.getDayOfWeek().getValue();
+
+        for (int i = 1; i <= 42; i++) {
+            if (i <= dayOfWeek || i > daysInMonth + dayOfWeek) {
+                daysInMonthArray.add("");
+            } else {
+                daysInMonthArray.add(String.valueOf(i - dayOfWeek));
+            }
+        }
+        return daysInMonthArray;
+    }
+
+    private String monthYearFromDate(LocalDate date) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
+        return date.format(formatter);
+    }
+
+    @Override
+    public void onItemClick(int position, String dayText) {
+        if (!dayText.equals("")) {
+            String message = "Selected Date " + dayText + " " + setDateCalender.getText();
+            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        }
     }
 }
