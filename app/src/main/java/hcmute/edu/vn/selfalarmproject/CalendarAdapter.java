@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.api.services.calendar.model.Event;
 
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
@@ -20,7 +20,6 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
     private final OnItemListener onItemListener;
     private List<Event> listEvent;
     private int selectedDay = -1;
-
 
     public CalendarAdapter(ArrayList<String> daysOfMonth, OnItemListener onItemListener, List<Event> listEvent) {
         this.daysOfMonth = daysOfMonth;
@@ -36,11 +35,6 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
         return new CalendarViewHolder(view, onItemListener);
     }
 
-    public void setEvents(List<Event> newEvents) {
-        this.listEvent = newEvents;
-        notifyDataSetChanged(); // Cập nhật lại RecyclerView
-    }
-
     @Override
     public void onBindViewHolder(@NonNull CalendarViewHolder holder, int position) {
         String dayText = daysOfMonth.get(position);
@@ -48,16 +42,17 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
 
         if (!dayText.isEmpty()) {
             int day = Integer.parseInt(dayText);
-
-            if (day == selectedDay) {
-                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_selected); // Ngày đang chọn
-                holder.dayOfMonth.setTextColor(Color.WHITE);
-            } else if (hasEventOnDay(day)) {
-                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_event); // Ngày có sự kiện
+            if (hasEventOnDay(day)) {
+                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_event);
                 holder.dayOfMonth.setTextColor(Color.WHITE);
             } else {
-                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_background); // Mặc định
+                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_background);
                 holder.dayOfMonth.setTextColor(Color.BLACK);
+            }
+            // Nếu người dùng chọn ngày, thay đổi màu sắc
+            if (day == selectedDay) {
+                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_selected);
+                holder.dayOfMonth.setTextColor(Color.WHITE);
             }
 
             holder.dayOfMonth.setOnClickListener(v -> {
@@ -83,10 +78,7 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
     private boolean hasEventOnDay(int day) {
         for (Event event : listEvent) {
             if (event.getStart().getDateTime() != null) {
-                // Nếu sự kiện có DateTime (giờ cụ thể)
-                Calendar eventCalendar = Calendar.getInstance();
-                eventCalendar.setTimeInMillis(event.getStart().getDateTime().getValue());
-                int eventDay = eventCalendar.get(Calendar.DAY_OF_MONTH);
+                int eventDay = new Date(event.getStart().getDateTime().getValue()).getDate();
                 if (eventDay == day) {
                     return true;
                 }

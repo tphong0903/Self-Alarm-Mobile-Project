@@ -30,6 +30,8 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
@@ -47,13 +49,28 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient googleSignInClient;
     private List<Event> listEvent = new ArrayList<>();
-    private String heheh = null;
+    private GoogleSignInAccount account;
+    private static HttpTransport transport;
+    private static final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    private static GoogleAccountCredential credential;
+
+
     private static final String TAG = "GoogleCalendarDebug";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_home, container, false);
+        try {
+            transport = GoogleNetHttpTransport.newTrustedTransport();
+            credential = GoogleAccountCredential.usingOAuth2(
+                    requireContext(), Collections.singleton(CalendarScopes.CALENDAR_READONLY));
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR_READONLY))
@@ -62,46 +79,41 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
 
         googleSignInClient = GoogleSignIn.getClient(requireContext(), gso);
         checkExistingSignIn();
-        initWidgets();
-        selectedDate = LocalDate.now();
-        setMonthView();
-
         return rootView;
     }
 
     private void checkExistingSignIn() {
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(requireContext());
+        account = GoogleSignIn.getLastSignedInAccount(requireContext());
         if (account == null) {
-            // Chưa đăng nhập, tự động chuyển hướng
             triggerGoogleSignIn();
         } else {
-            // Đã đăng nhập, tiếp tục hiển thị giao diện
             updateUI(account);
         }
-        fetchCalendarEvents(account, null);
+        fetchCalendarEvents(account, 0, 0);
     }
 
-    private void fetchCalendarEvents(GoogleSignInAccount account, DateTime time) {
-        Executors.newSingleThreadExecutor().execute(() -> {
+    private void fetchCalendarEvents(GoogleSignInAccount account, int Month, int Year) {
+        Executors.newCachedThreadPool().execute(() -> {
             try {
-                HttpTransport transport = GoogleNetHttpTransport.newTrustedTransport();
-                JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
-                GoogleAccountCredential credential = GoogleAccountCredential.usingOAuth2(
-                        requireContext(), Collections.singleton(CalendarScopes.CALENDAR_READONLY));
                 credential.setSelectedAccount(account.getAccount());
 
                 com.google.api.services.calendar.Calendar service = new com.google.api.services.calendar.Calendar.Builder(transport, jsonFactory, credential)
                         .setApplicationName("SelfAlarmProject")
                         .build();
 
+                Boolean checkTime = Month == 0 ? true : false;
                 Calendar calendar = Calendar.getInstance();
+                LocalDate selectedDate2 = LocalDate.now();
                 calendar.set(Calendar.DAY_OF_MONTH, 1);
+                calendar.set(Calendar.MONTH, checkTime ? selectedDate2.getMonthValue() - 1 : Month);
+                calendar.set(Calendar.YEAR, checkTime ? selectedDate2.getYear() : Year);
                 DateTime firstDayOfMonth = new DateTime(calendar.getTime());
 
                 calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
                 DateTime lastDayOfMonth = new DateTime(calendar.getTime());
-
-                Boolean checkTime = time == null ? false : true;
+                Log.e(TAG, "thang " + Month);
+                Log.e(TAG, "ngay dau tien " + firstDayOfMonth);
+                Log.e(TAG, "ngay cuoi " + lastDayOfMonth);
                 Events events = service.events().list("primary")
                         .setTimeMin(firstDayOfMonth)
                         .setTimeMax(lastDayOfMonth)
@@ -110,18 +122,17 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
                         .execute();
 
                 List<Event> items = events.getItems();
-
-                if (!items.isEmpty()) {
+                Log.e(TAG, "so luong event-1 " + items.size());
+                if (!items.equals(listEvent)) {
+                    Log.e(TAG, "so luong event-2 " + items.size());
+                    listEvent.clear();
                     listEvent.addAll(items);
+                    requireActivity().runOnUiThread(this::setMonthView);
                 }
-                requireActivity().runOnUiThread(this::setMonthView);
 
             } catch (Exception e) {
                 Log.e(TAG, "Lỗi khi lấy sự kiện", e);
-                e.printStackTrace();
-                requireActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), "Lỗi khi lấy sự kiện", Toast.LENGTH_SHORT).show()
-                );
+
             }
         });
     }
@@ -155,19 +166,14 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     }
 
     private void updateUI(GoogleSignInAccount account) {
-        // Xử lý khi đăng nhập thành công
-        String email = account.getEmail();
         String displayName = account.getDisplayName();
         Toast.makeText(getContext(), "Welcome " + displayName, Toast.LENGTH_SHORT).show();
-
-        // Hiển thị giao diện chính
         initWidgets();
         selectedDate = LocalDate.now();
         setMonthView();
     }
 
     private void handleSignInFailure() {
-        // Xử lý khi đăng nhập thất bại
         Toast.makeText(getContext(), "Bạn phải đăng nhập để tiếp tục", Toast.LENGTH_SHORT).show();
     }
 
@@ -186,8 +192,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
                         selectedDate = LocalDate.of(selectedYear, selectedMonth + 1, day);
 
                         setDateCalender.setText(monthYearFromDate(selectedDate));
-
-                        setMonthView();
+                        fetchCalendarEvents(account, selectedMonth, selectedYear);
                     }, year, month, day);
 
             datePickerDialog.show();
@@ -197,11 +202,8 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     private void setMonthView() {
         setDateCalender.setText(monthYearFromDate(selectedDate));
         ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
-
         CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this, listEvent);
-        calendarAdapter.setEvents(listEvent);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 7);
-        calendarRecyclerView.setLayoutManager(layoutManager);
+        calendarRecyclerView.setLayoutManager(new GridLayoutManager(getActivity().getApplicationContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
     }
