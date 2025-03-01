@@ -23,6 +23,9 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new MusicFragment());
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
+                signOut();
             }
 
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -105,6 +109,17 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void signOut() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            replaceFragment(new MusicFragment());
+
+        });
+    }
 
     private void replaceFragment(Fragment fragment) {
         if (fragment != null) {
