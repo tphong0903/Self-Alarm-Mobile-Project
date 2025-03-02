@@ -1,18 +1,22 @@
 package hcmute.edu.vn.selfalarmproject;
 
+import static hcmute.edu.vn.selfalarmproject.HomeFragment.service;
+
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -30,9 +34,18 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
+import java.util.TimeZone;
+import java.util.UUID;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
     FloatingActionButton floatingActionButton;
@@ -41,9 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     NavigationView navigationView;
 
-    String[] item = {"Event", "Task", "Appointment schedule"};
-
-    AutoCompleteTextView autoCompleteTextView;
 
     ArrayAdapter<String> arrayAdapter;
 
@@ -135,20 +145,10 @@ public class MainActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottom_sheet_dialog);
-
         ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
-        autoCompleteTextView = dialog.findViewById(R.id.selectTypeCalender);
-
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.list_type_calender, item);
-        autoCompleteTextView.setAdapter(arrayAdapter);
-        autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = arrayAdapter.getItem(position);
-                Toast.makeText(MainActivity.this, item, Toast.LENGTH_SHORT).show();
-            }
-        });
         AutoCompleteTextView dateTextView = dialog.findViewById(R.id.setDateCalender);
+        EditText titleCalendar = dialog.findViewById(R.id.editTextTitleCalender);
+        EditText descriptionCalendar = dialog.findViewById(R.id.editTextDescriptionCalender);
         Calendar calendar1 = Calendar.getInstance();
         int year1 = calendar1.get(Calendar.YEAR);
         int month1 = calendar1.get(Calendar.MONTH);
@@ -215,12 +215,77 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button addCalendar = dialog.findViewById(R.id.btnSetTime);
+        addCalendar.setOnClickListener(v -> {
+            addEvent(dialog, titleCalendar.getText().toString(), descriptionCalendar.getText().toString(), startTimeTextView.getText().toString(), endTimeTextView.getText().toString(), dateTextView.getText().toString());
+        });
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
         dialog.show();
 
+    }
+
+    private void addEvent(Dialog dialog, String title, String description, String startTime, String endTime, String date) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                UUID uuid = UUID.randomUUID();
+                Event event = new Event();
+                String eventId = uuid.toString().replace("-", "");
+                event.setId(eventId);
+                event.setSummary(title);
+                event.setDescription(description);
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+                Date parsedDate = inputFormat.parse(date);
+                String formattedDate = outputFormat.format(parsedDate);
+                if (!startTime.equals("N/A") && !endTime.equals("N/A")) {
+                    SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
+                    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+
+                    Date startDateTime = dateTimeFormat.parse(formattedDate + " " + startTime);
+                    Date endDateTime = dateTimeFormat.parse(formattedDate + " " + endTime);
+
+                    EventDateTime startEventDateTime = new EventDateTime()
+                            .setDateTime(new com.google.api.client.util.DateTime(startDateTime))
+                            .setTimeZone("UTC");
+
+                    EventDateTime endEventDateTime = new EventDateTime()
+                            .setDateTime(new com.google.api.client.util.DateTime(endDateTime))
+                            .setTimeZone("UTC");
+
+                    event.setStart(startEventDateTime);
+                    event.setEnd(endEventDateTime);
+                } else {
+                    EventDateTime startEventDateTime = new EventDateTime()
+                            .setDate(new com.google.api.client.util.DateTime(formattedDate))
+                            .setTimeZone("UTC");
+                    event.setStart(startEventDateTime);
+                    event.setEnd(startEventDateTime);
+                }
+                service.events().insert("primary", event).execute();
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Thêm sự kiện thành công", Toast.LENGTH_SHORT).show();
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                    }
+                    HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
+                    if (homeFragment != null) {
+                        homeFragment.loadEvents();  // Gọi phương thức cập nhật danh sách
+                    }
+                });
+            } catch (IOException e) {
+
+                runOnUiThread(() -> {
+                    Log.d("Event", e.getMessage());
+                    Toast.makeText(MainActivity.this, "Lỗi khi thêm sự kiện", Toast.LENGTH_SHORT).show();
+                });
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 }

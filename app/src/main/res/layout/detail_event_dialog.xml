@@ -3,7 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/dialogbg">
+    android:background="@drawable/detail_event_dialog">
 
     <ImageView
         android:layout_width="70dp"
@@ -22,20 +22,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textAlignment="viewStart"
-            android:text="Create Calendar"
+            android:text="Detail Event"
             android:padding="8dp"
             android:textColor="@color/lavender"
             android:layout_marginStart="12dp"
-            android:layout_marginTop="5dp"
+
             android:textSize="25dp" />
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/baseline_clear_24"
-            android:layout_marginLeft="250dp"
-            android:layout_marginTop="8dp"
-            android:id="@+id/cancelButton" />
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_edit_24"
+            android:layout_marginLeft="150dp"
+            android:id="@+id/editButton" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/baseline_delete_24"
+            android:layout_marginLeft="30dp"
+
+            android:id="@+id/deleteButton" />
 
     </LinearLayout>
 
@@ -58,13 +65,16 @@
             android:id="@+id/titleCalender"
             android:layout_width="match_parent"
             android:hint="Title"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+
             android:layout_height="wrap_content">
 
             <EditText
                 android:id="@+id/editTextTitleCalender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
+                android:focusable="false"
+                android:cursorVisible="false"
                 android:inputType="text" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -88,11 +98,13 @@
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/descriptionCalender"
             android:layout_width="match_parent"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:hint="Description"
             android:layout_height="wrap_content">
 
             <EditText
-
+                android:focusable="false"
+                android:cursorVisible="false"
                 android:layout_width="match_parent"
                 android:layout_height="100dp"
                 android:inputType="text"
@@ -101,7 +113,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
-    
+
 
     <LinearLayout
         android:id="@+id/layoutDate"
@@ -124,6 +136,7 @@
             android:layout_height="wrap_content">
 
             <AutoCompleteTextView
+                android:enabled="false"
                 android:id="@+id/setDateCalender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -134,6 +147,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:visibility="gone"
         android:id="@+id/layoutTime"
         android:padding="10dp"
         android:layout_marginLeft="20dp"
@@ -152,6 +166,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
             <AutoCompleteTextView
+                android:enabled="false"
                 android:id="@+id/setStartTimeCalender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -177,6 +192,7 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
             <AutoCompleteTextView
+                android:enabled="false"
                 android:id="@+id/setEndTimeCalender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -187,12 +203,13 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/btnSetTime"
+        android:visibility="gone"
+        android:id="@+id/btnSaveTime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end"
         android:layout_marginRight="10dp"
-        android:text="Set"
+        android:text="Save"
         android:textColor="@android:color/white" />
 
 </LinearLayout>

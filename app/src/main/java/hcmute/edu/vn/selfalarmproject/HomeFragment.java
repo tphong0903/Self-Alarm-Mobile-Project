@@ -41,6 +41,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
 
+import mobel.EventModel;
+
 public class HomeFragment extends Fragment implements CalendarAdapter.OnItemListener {
     private AutoCompleteTextView setDateCalender;
     private RecyclerView calendarRecyclerView;
@@ -52,6 +54,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     private GoogleSignInAccount account;
     private static HttpTransport transport;
     private static final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    public static com.google.api.services.calendar.Calendar service;
     private static GoogleAccountCredential credential;
 
 
@@ -97,7 +100,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
             try {
                 credential.setSelectedAccount(account.getAccount());
 
-                com.google.api.services.calendar.Calendar service = new com.google.api.services.calendar.Calendar.Builder(transport, jsonFactory, credential)
+                service = new com.google.api.services.calendar.Calendar.Builder(transport, jsonFactory, credential)
                         .setApplicationName("SelfAlarmProject")
                         .build();
 
@@ -234,9 +237,39 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
 
     @Override
     public void onItemClick(int position, String dayText) {
-        if (!dayText.equals("")) {
-            String message = "Selected Date " + dayText + " " + setDateCalender.getText();
-            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        if (Integer.parseInt(dayText) <= 9)
+            dayText = "0" + dayText;
+        if (!dayText.isEmpty()) {
+            ArrayList<EventModel> eventModelList = new ArrayList<>();
+            for (Event event : listEvent) {
+                String eventDate;
+
+                if (event.getStart().getDateTime() != null) {
+                    eventDate = event.getStart().getDateTime().toStringRfc3339().substring(8, 10);
+                } else {
+                    eventDate = event.getStart().getDate().toString().substring(8, 10);
+                }
+                if (eventDate.equals(dayText)) {
+                    EventModel a = new EventModel(
+                            event.getId(),
+                            event.getSummary(),
+                            event.getDescription(),
+                            event.getEventType(),
+                            event.getStart(),
+                            event.getEnd(),
+                            event.getOriginalStartTime(),
+                            event.getStart().getDate() != null ? 1 : 0
+                    );
+                    eventModelList.add(a);
+                }
+            }
+            Intent intent = new Intent(this.getContext(), EventDetailActivity.class);
+            intent.putParcelableArrayListExtra("listEvent", eventModelList);
+            startActivity(intent);
         }
+    }
+
+    public void loadEvents() {
+        fetchCalendarEvents(account, 0, 0);
     }
 }
