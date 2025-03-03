@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 
 import java.text.SimpleDateFormat;
@@ -19,13 +20,11 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import mobel.EventModel;
-
-public class EventAdapter extends ArrayAdapter<EventModel> {
+public class EventAdapter extends ArrayAdapter<Event> {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-    public EventAdapter(Context context, ArrayList<EventModel> eventList) {
+    public EventAdapter(Context context, ArrayList<Event> eventList) {
         super(context, R.layout.list_event_item, eventList);
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
@@ -34,14 +33,14 @@ public class EventAdapter extends ArrayAdapter<EventModel> {
     @NonNull
     @Override
     public View getView(int position, @Nullable View view, @NonNull ViewGroup parent) {
-        EventModel listData = getItem(position);
+        Event listData = getItem(position);
         if (view == null) {
             view = LayoutInflater.from(getContext()).inflate(R.layout.list_event_item, parent, false);
         }
         TextView listName = view.findViewById(R.id.listName);
         TextView listTime = view.findViewById(R.id.listTime);
         listName.setText(listData.getSummary());
-        EventDateTime eventDateTime = listData.getStartTimeAsEventDateTime();
+        EventDateTime eventDateTime = listData.getStart();
         if (eventDateTime != null) {
             String formattedDate = formatEventDate(eventDateTime);
             listTime.setText(formattedDate);

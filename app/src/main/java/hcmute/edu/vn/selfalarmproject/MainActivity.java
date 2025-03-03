@@ -1,10 +1,9 @@
 package hcmute.edu.vn.selfalarmproject;
 
-import static hcmute.edu.vn.selfalarmproject.HomeFragment.service;
-
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -13,7 +12,6 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,24 +26,30 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.calendar.CalendarScopes;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.security.GeneralSecurityException;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Collections;
 import java.util.Locale;
-import java.util.TimeZone;
-import java.util.UUID;
 import java.util.concurrent.Executors;
+
+import hcmute.edu.vn.selfalarmproject.service.CalendarService;
 
 public class MainActivity extends AppCompatActivity {
     FloatingActionButton floatingActionButton;
@@ -55,13 +59,86 @@ public class MainActivity extends AppCompatActivity {
     NavigationView navigationView;
 
 
-    ArrayAdapter<String> arrayAdapter;
+    private GoogleSignInAccount account;
+    private Bundle savedInstanceState;
+    private static HttpTransport transport;
+    private static final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    private GoogleSignInClient googleSignInClient;
+
+    public static com.google.api.services.calendar.Calendar service;
+    private static final int RC_SIGN_IN = 9001;
+
+    private static GoogleAccountCredential credential;
+    public static CalendarService calendarService = new CalendarService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.savedInstanceState = savedInstanceState;
+        try {
+            transport = GoogleNetHttpTransport.newTrustedTransport();
+            credential = GoogleAccountCredential.usingOAuth2(
+                    getApplicationContext(), Collections.singleton(CalendarScopes.CALENDAR_READONLY));
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR_READONLY))
+                .requestServerAuthCode("634522600018-hljitpeajl1d02938trv731vqfab9th4.apps.googleusercontent.com", true)
+                .build();
 
+        googleSignInClient = GoogleSignIn.getClient(getApplicationContext(), gso);
+        checkExistingSignIn();
+
+
+    }
+
+    private void checkExistingSignIn() {
+        account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
+        if (account == null) {
+            triggerGoogleSignIn();
+        } else {
+            updateUI(savedInstanceState);
+            credential.setSelectedAccount(account.getAccount());
+
+            service = new com.google.api.services.calendar.Calendar.Builder(transport, jsonFactory, credential)
+                    .setApplicationName("SelfAlarmProject")
+                    .build();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> task) {
+        try {
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            if (account != null) {
+                updateUI(savedInstanceState);
+            } else {
+                handleSignInFailure();
+            }
+        } catch (ApiException e) {
+            handleSignInFailure();
+        }
+    }
+
+    private void handleSignInFailure() {
+        Toast.makeText(getApplicationContext(), "Bạn phải đăng nhập để tiếp tục", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateUI(Bundle savedInstanceState) {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         floatingActionButton = findViewById(R.id.fab);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -115,8 +192,11 @@ public class MainActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(v -> {
             showBottomDialog();
         });
+    }
 
-
+    private void triggerGoogleSignIn() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     private void signOut() {
@@ -230,42 +310,8 @@ public class MainActivity extends AppCompatActivity {
     private void addEvent(Dialog dialog, String title, String description, String startTime, String endTime, String date) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                UUID uuid = UUID.randomUUID();
-                Event event = new Event();
-                String eventId = uuid.toString().replace("-", "");
-                event.setId(eventId);
-                event.setSummary(title);
-                event.setDescription(description);
-                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-
-                Date parsedDate = inputFormat.parse(date);
-                String formattedDate = outputFormat.format(parsedDate);
-                if (!startTime.equals("N/A") && !endTime.equals("N/A")) {
-                    SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault());
-                    dateTimeFormat.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
-
-                    Date startDateTime = dateTimeFormat.parse(formattedDate + " " + startTime);
-                    Date endDateTime = dateTimeFormat.parse(formattedDate + " " + endTime);
-
-                    EventDateTime startEventDateTime = new EventDateTime()
-                            .setDateTime(new com.google.api.client.util.DateTime(startDateTime))
-                            .setTimeZone("UTC");
-
-                    EventDateTime endEventDateTime = new EventDateTime()
-                            .setDateTime(new com.google.api.client.util.DateTime(endDateTime))
-                            .setTimeZone("UTC");
-
-                    event.setStart(startEventDateTime);
-                    event.setEnd(endEventDateTime);
-                } else {
-                    EventDateTime startEventDateTime = new EventDateTime()
-                            .setDate(new com.google.api.client.util.DateTime(formattedDate))
-                            .setTimeZone("UTC");
-                    event.setStart(startEventDateTime);
-                    event.setEnd(startEventDateTime);
-                }
-                service.events().insert("primary", event).execute();
+                calendarService.addEvent(title, description, startTime, endTime, date);
+                Thread.sleep(1000);
                 runOnUiThread(() -> {
                     Toast.makeText(MainActivity.this, "Thêm sự kiện thành công", Toast.LENGTH_SHORT).show();
                     if (dialog.isShowing()) {
@@ -273,17 +319,15 @@ public class MainActivity extends AppCompatActivity {
                     }
                     HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
                     if (homeFragment != null) {
-                        homeFragment.loadEvents();  // Gọi phương thức cập nhật danh sách
+                        homeFragment.loadEvents();
                     }
                 });
-            } catch (IOException e) {
+            } catch (Exception e) {
 
                 runOnUiThread(() -> {
                     Log.d("Event", e.getMessage());
                     Toast.makeText(MainActivity.this, "Lỗi khi thêm sự kiện", Toast.LENGTH_SHORT).show();
                 });
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
             }
         });
     }
