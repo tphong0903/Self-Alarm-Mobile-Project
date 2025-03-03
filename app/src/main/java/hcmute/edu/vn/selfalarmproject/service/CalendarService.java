@@ -12,6 +12,7 @@ import com.google.api.services.calendar.model.Events;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -27,46 +28,50 @@ import java.util.concurrent.Future;
 public class CalendarService {
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    public Future<List<Event>> fetchCalendarEvents(int daytext, int Month, int Year) {
-        return executor.submit(new Callable<List<Event>>() {
-            @Override
-            public List<Event> call() {
-                try {
-                    boolean checkTime = (Month == 0);
-                    Calendar calendar = Calendar.getInstance();
-                    LocalDate selectedDate2 = LocalDate.now();
-                    calendar.set(Calendar.DAY_OF_MONTH, daytext == -99 ? 1 : daytext);
-                    calendar.set(Calendar.MONTH, checkTime ? selectedDate2.getMonthValue() - 1 : Month);
-                    calendar.set(Calendar.YEAR, checkTime ? selectedDate2.getYear() : Year);
-                    calendar.set(Calendar.HOUR_OF_DAY, 0);
-                    calendar.set(Calendar.MINUTE, 0);
-                    calendar.set(Calendar.SECOND, 0);
-                    DateTime firstDayOfMonth = new DateTime(calendar.getTime());
+    public List<Event> fetchCalendarEvents(int daytext, int Month, int Year) {
+        Callable<List<Event>> task = () -> {
+            try {
+                boolean checkTime = (Month == 0);
+                Calendar calendar = Calendar.getInstance();
+                LocalDate selectedDate2 = LocalDate.now();
+                calendar.set(Calendar.DAY_OF_MONTH, daytext == -99 ? 1 : daytext);
+                calendar.set(Calendar.MONTH, checkTime ? selectedDate2.getMonthValue() - 1 : Month);
+                calendar.set(Calendar.YEAR, checkTime ? selectedDate2.getYear() : Year);
+                calendar.set(Calendar.HOUR_OF_DAY, 0);
+                calendar.set(Calendar.MINUTE, 0);
+                calendar.set(Calendar.SECOND, 0);
+                DateTime firstDayOfMonth = new DateTime(calendar.getTime());
 
-                    calendar.set(Calendar.DAY_OF_MONTH, daytext == -99 ? calendar.getActualMaximum(Calendar.DAY_OF_MONTH) : daytext);
-                    calendar.set(Calendar.HOUR_OF_DAY, 23);
-                    calendar.set(Calendar.MINUTE, 59);
-                    calendar.set(Calendar.SECOND, 59);
-                    DateTime lastDayOfMonth = new DateTime(calendar.getTime());
+                calendar.set(Calendar.DAY_OF_MONTH, daytext == -99 ? calendar.getActualMaximum(Calendar.DAY_OF_MONTH) : daytext);
+                calendar.set(Calendar.HOUR_OF_DAY, 23);
+                calendar.set(Calendar.MINUTE, 59);
+                calendar.set(Calendar.SECOND, 59);
+                DateTime lastDayOfMonth = new DateTime(calendar.getTime());
 
-                    Log.e("Event", "first: " + firstDayOfMonth);
-                    Log.e("Event", "last: " + lastDayOfMonth);
+                Log.e("EventCal", "first: " + firstDayOfMonth);
+                Log.e("EventCal", "last: " + lastDayOfMonth);
 
-                    Events events = service.events().list("primary")
-                            .setTimeMin(firstDayOfMonth)
-                            .setTimeMax(lastDayOfMonth)
-                            .setOrderBy("startTime")
-                            .setSingleEvents(true)
-                            .setFields("items(id,summary,description,start,end)")
-                            .execute();
-
-                    return events.getItems();
-                } catch (Exception e) {
-                    Log.e("Error", "Lỗi khi lấy sự kiện", e);
-                    return null;
-                }
+                Events events = service.events().list("primary")
+                        .setTimeMin(firstDayOfMonth)
+                        .setTimeMax(lastDayOfMonth)
+                        .setOrderBy("startTime")
+                        .setSingleEvents(true)
+                        .execute();
+                Log.e("EventCal", String.valueOf(events.size()));
+                return events.getItems();
+            } catch (Exception e) {
+                Log.e("Error", "Lỗi khi lấy sự kiện", e);
+                return new ArrayList<>();
             }
-        });
+        };
+
+        Future<List<Event>> future = executor.submit(task);
+        try {
+            return future.get();
+        } catch (Exception e) {
+            Log.e("Error", "Lỗi khi lấy kết quả sự kiện", e);
+            return new ArrayList<>();
+        }
     }
 
     public void deleteEvent(String id) {

@@ -152,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(v -> {
+
             int id = v.getItemId();
 
             if (id == R.id.nav_home) {

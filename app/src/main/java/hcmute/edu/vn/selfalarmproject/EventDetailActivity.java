@@ -35,7 +35,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class EventDetailActivity extends AppCompatActivity {
     private ArrayList<Event> listEvent = new ArrayList<>();
@@ -71,8 +70,8 @@ public class EventDetailActivity extends AppCompatActivity {
     private void fetchCalendarEvents(int Month, int Year) {
         Executors.newCachedThreadPool().execute(() -> {
             try {
-                Future<List<Event>> futureEvents = calendarService.fetchCalendarEvents(daytext, Month, Year);
-                List<Event> events = futureEvents.get();
+
+                List<Event> events = calendarService.fetchCalendarEvents(daytext, Month, Year);
                 runOnUiThread(() -> {
                     listEvent.clear();
                     listEvent.addAll(events);

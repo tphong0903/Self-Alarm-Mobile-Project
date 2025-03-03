@@ -3,6 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/detail_event_dialog">
 
     <ImageView
@@ -10,6 +11,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_remove_24"
         android:layout_gravity="center|top"
+        app:tint="@color/colorIcon"
         android:scaleType="centerCrop" />
 
     <LinearLayout
@@ -26,7 +28,6 @@
             android:padding="8dp"
             android:textColor="@color/lavender"
             android:layout_marginStart="12dp"
-
             android:textSize="25dp" />
 
         <ImageView
@@ -34,6 +35,7 @@
             android:layout_height="match_parent"
             android:src="@drawable/baseline_edit_24"
             android:layout_marginLeft="150dp"
+            app:tint="@color/colorIcon"
             android:id="@+id/editButton" />
 
         <ImageView
@@ -41,7 +43,7 @@
             android:layout_height="match_parent"
             android:src="@drawable/baseline_delete_24"
             android:layout_marginLeft="30dp"
-
+            app:tint="@color/colorIcon"
             android:id="@+id/deleteButton" />
 
     </LinearLayout>
@@ -59,6 +61,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:tint="@color/colorIcon"
             android:src="@drawable/baseline_title_24" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -92,6 +95,7 @@
 
         <ImageView
             android:layout_width="wrap_content"
+            app:tint="@color/colorIcon"
             android:layout_height="wrap_content"
             android:src="@drawable/baseline_notes_24" />
 
@@ -125,6 +129,7 @@
 
         <ImageView
             android:layout_width="wrap_content"
+            app:tint="@color/colorIcon"
             android:layout_height="wrap_content"
             android:src="@drawable/baseline_calendar_month_24" />
 
@@ -179,7 +184,7 @@
             android:layout_height="wrap_content"
             android:text="-"
             android:textSize="18sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/textColorPrimary"
             android:layout_gravity="center"
             android:paddingHorizontal="8dp" />
 

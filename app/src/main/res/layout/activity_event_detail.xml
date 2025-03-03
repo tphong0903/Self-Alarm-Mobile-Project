@@ -5,19 +5,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:theme="@style/Theme.Material3.Dark"
     tools:context=".EventDetailActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:theme="@style/ThemeOverlay.Material3.ActionBar">
+        android:layout_height="?attr/actionBarSize">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?attr/colorPrimary"
+            android:background="@color/lavender"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             android:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>

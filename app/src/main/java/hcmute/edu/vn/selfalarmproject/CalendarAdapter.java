@@ -47,7 +47,6 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
                 holder.dayOfMonth.setTextColor(Color.WHITE);
             } else {
                 holder.dayOfMonth.setBackgroundResource(R.drawable.circle_background);
-                holder.dayOfMonth.setTextColor(Color.BLACK);
             }
             // Nếu người dùng chọn ngày, thay đổi màu sắc
             if (day == selectedDay) {

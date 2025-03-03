@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="#64B5F6"/> <!-- Màu xanh nhạt -->
+    <solid android:color="@color/lavender"/> <!-- Màu xanh nhạt -->
 </shape>

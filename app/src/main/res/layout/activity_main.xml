@@ -40,7 +40,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="@color/backgroundBottomAppBar"
             app:contentInsetStart="0dp"
             app:fabCradleMargin="10dp"
             app:fabCradleRoundedCornerRadius="50dp">
@@ -51,6 +51,8 @@
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
                 app:labelVisibilityMode="labeled"
+                app:itemIconTint="@color/selector_bottom_nav_icon"
+                app:itemTextColor="@color/selector_bottom_nav_text"
                 app:menu="@menu/bottom_menu" />
         </com.google.android.material.bottomappbar.BottomAppBar>
 

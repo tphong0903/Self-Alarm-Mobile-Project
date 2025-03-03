@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 public class HomeFragment extends Fragment implements CalendarAdapter.OnItemListener {
     private AutoCompleteTextView setDateCalender;
@@ -49,8 +48,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     private void fetchCalendarEvents(int Month, int Year) {
         Executors.newCachedThreadPool().execute(() -> {
             try {
-                Future<List<Event>> futureEvents = calendarService.fetchCalendarEvents(-99, Month, Year);
-                List<Event> events = futureEvents.get();
+                List<Event> events = calendarService.fetchCalendarEvents(-99, Month, Year);
                 requireActivity().runOnUiThread(() -> {
                     listEvent.clear();
                     listEvent.addAll(events);

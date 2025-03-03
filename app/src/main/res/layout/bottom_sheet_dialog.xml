@@ -3,6 +3,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/dialogbg">
 
     <ImageView
@@ -10,6 +11,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/baseline_remove_24"
         android:layout_gravity="center|top"
+        app:tint="@color/colorIcon"
         android:scaleType="centerCrop" />
 
     <LinearLayout
@@ -35,6 +37,7 @@
             android:src="@drawable/baseline_clear_24"
             android:layout_marginLeft="250dp"
             android:layout_marginTop="8dp"
+            app:tint="@color/colorIcon"
             android:id="@+id/cancelButton" />
 
     </LinearLayout>
@@ -52,19 +55,21 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:tint="@color/colorIcon"
             android:src="@drawable/baseline_title_24" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/titleCalender"
             android:layout_width="match_parent"
             android:hint="Title"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_height="wrap_content">
 
             <EditText
                 android:id="@+id/editTextTitleCalender"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
+                android:textColor="@color/textColorPrimary"
                 android:inputType="text" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -83,10 +88,12 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:tint="@color/colorIcon"
             android:src="@drawable/baseline_notes_24" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/descriptionCalender"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:hint="Description"
             android:layout_height="wrap_content">
@@ -101,7 +108,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
-    
+
 
     <LinearLayout
         android:id="@+id/layoutDate"
@@ -114,6 +121,7 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            app:tint="@color/colorIcon"
             android:src="@drawable/baseline_calendar_month_24" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -164,7 +172,7 @@
             android:layout_height="wrap_content"
             android:text="-"
             android:textSize="18sp"
-            android:textColor="@android:color/black"
+            android:textColor="@color/textColorPrimary"
             android:layout_gravity="center"
             android:paddingHorizontal="8dp" />
 
