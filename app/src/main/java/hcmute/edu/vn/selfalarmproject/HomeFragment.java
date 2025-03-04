@@ -1,40 +1,74 @@
 package hcmute.edu.vn.selfalarmproject;
 
+import static hcmute.edu.vn.selfalarmproject.MainActivity.calendarService;
+
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AutoCompleteTextView;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.api.services.calendar.model.Event;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment implements CalendarAdapter.OnItemListener {
     private AutoCompleteTextView setDateCalender;
     private RecyclerView calendarRecyclerView;
     private LocalDate selectedDate;
     private View rootView;
+    private List<Event> listEvent = new ArrayList<>();
+
+
+    private static final String TAG = "GoogleCalendarDebug";
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_home, container, false);
+        updateUI();
+        return rootView;
+    }
 
 
+    private void fetchCalendarEvents(int Month, int Year) {
+        Executors.newCachedThreadPool().execute(() -> {
+            try {
+                List<Event> events = calendarService.fetchCalendarEvents(-99, Month, Year);
+                requireActivity().runOnUiThread(() -> {
+                    listEvent.clear();
+                    listEvent.addAll(events);
+                    setMonthView();
+                });
+
+
+            } catch (Exception e) {
+                Log.e(TAG, "Lỗi khi lấy sự kiện", e);
+
+            }
+        });
+    }
+
+
+    private void updateUI() {
         initWidgets();
         selectedDate = LocalDate.now();
+        loadEvents();
         setMonthView();
-
-        return rootView;
     }
 
     private void initWidgets() {
@@ -52,8 +86,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
                         selectedDate = LocalDate.of(selectedYear, selectedMonth + 1, day);
 
                         setDateCalender.setText(monthYearFromDate(selectedDate));
-
-                        setMonthView();
+                        fetchCalendarEvents(selectedMonth, selectedYear);
                     }, year, month, day);
 
             datePickerDialog.show();
@@ -63,10 +96,8 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     private void setMonthView() {
         setDateCalender.setText(monthYearFromDate(selectedDate));
         ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
-
-        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this);
-        RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity().getApplicationContext(), 7);
-        calendarRecyclerView.setLayoutManager(layoutManager);
+        CalendarAdapter calendarAdapter = new CalendarAdapter(daysInMonth, this, listEvent);
+        calendarRecyclerView.setLayoutManager(new GridLayoutManager(getActivity().getApplicationContext(), 7));
         calendarRecyclerView.setAdapter(calendarAdapter);
 
     }
@@ -97,9 +128,14 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
 
     @Override
     public void onItemClick(int position, String dayText) {
-        if (!dayText.equals("")) {
-            String message = "Selected Date " + dayText + " " + setDateCalender.getText();
-            Toast.makeText(getActivity(), message, Toast.LENGTH_LONG).show();
+        if (!dayText.isEmpty()) {
+            Intent intent = new Intent(this.getContext(), EventDetailActivity.class);
+            intent.putExtra("dayText", Integer.parseInt(dayText));
+            startActivity(intent);
         }
+    }
+
+    public void loadEvents() {
+        fetchCalendarEvents(0, 0);
     }
 }

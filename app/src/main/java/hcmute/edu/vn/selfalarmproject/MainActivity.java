@@ -3,16 +3,18 @@ package hcmute.edu.vn.selfalarmproject;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -23,13 +25,31 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.gson.GsonFactory;
+import com.google.api.services.calendar.CalendarScopes;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.Executors;
+
+import hcmute.edu.vn.selfalarmproject.service.CalendarService;
 
 public class MainActivity extends AppCompatActivity {
     FloatingActionButton floatingActionButton;
@@ -38,17 +58,87 @@ public class MainActivity extends AppCompatActivity {
 
     NavigationView navigationView;
 
-    String[] item = {"Event", "Task", "Appointment schedule"};
 
-    AutoCompleteTextView autoCompleteTextView;
+    private GoogleSignInAccount account;
+    private Bundle savedInstanceState;
+    private static HttpTransport transport;
+    private static final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
+    private GoogleSignInClient googleSignInClient;
 
-    ArrayAdapter<String> arrayAdapter;
+    public static com.google.api.services.calendar.Calendar service;
+    private static final int RC_SIGN_IN = 9001;
+
+    private static GoogleAccountCredential credential;
+    public static CalendarService calendarService = new CalendarService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.savedInstanceState = savedInstanceState;
+        try {
+            transport = GoogleNetHttpTransport.newTrustedTransport();
+            credential = GoogleAccountCredential.usingOAuth2(
+                    getApplicationContext(), Collections.singleton(CalendarScopes.CALENDAR_READONLY));
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR_READONLY))
+                .requestServerAuthCode("634522600018-hljitpeajl1d02938trv731vqfab9th4.apps.googleusercontent.com", true)
+                .build();
 
+        googleSignInClient = GoogleSignIn.getClient(getApplicationContext(), gso);
+        checkExistingSignIn();
+
+
+    }
+
+    private void checkExistingSignIn() {
+        account = GoogleSignIn.getLastSignedInAccount(getApplicationContext());
+        if (account == null) {
+            triggerGoogleSignIn();
+        } else {
+            updateUI(savedInstanceState);
+            credential.setSelectedAccount(account.getAccount());
+
+            service = new com.google.api.services.calendar.Calendar.Builder(transport, jsonFactory, credential)
+                    .setApplicationName("SelfAlarmProject")
+                    .build();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> task) {
+        try {
+            GoogleSignInAccount account = task.getResult(ApiException.class);
+            if (account != null) {
+                updateUI(savedInstanceState);
+            } else {
+                handleSignInFailure();
+            }
+        } catch (ApiException e) {
+            handleSignInFailure();
+        }
+    }
+
+    private void handleSignInFailure() {
+        Toast.makeText(getApplicationContext(), "Bạn phải đăng nhập để tiếp tục", Toast.LENGTH_SHORT).show();
+    }
+
+    private void updateUI(Bundle savedInstanceState) {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         floatingActionButton = findViewById(R.id.fab);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -62,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(v -> {
+
             int id = v.getItemId();
 
             if (id == R.id.nav_home) {
@@ -70,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new MusicFragment());
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
+                signOut();
             }
 
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -101,10 +193,24 @@ public class MainActivity extends AppCompatActivity {
         floatingActionButton.setOnClickListener(v -> {
             showBottomDialog();
         });
-
-
     }
 
+    private void triggerGoogleSignIn() {
+        Intent signInIntent = googleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    private void signOut() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        mGoogleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            replaceFragment(new MusicFragment());
+
+        });
+    }
 
     private void replaceFragment(Fragment fragment) {
         if (fragment != null) {
@@ -120,20 +226,10 @@ public class MainActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.bottom_sheet_dialog);
-
         ImageView cancelButton = dialog.findViewById(R.id.cancelButton);
-        autoCompleteTextView = dialog.findViewById(R.id.selectTypeCalender);
-
-        arrayAdapter = new ArrayAdapter<>(this, R.layout.list_type_calender, item);
-        autoCompleteTextView.setAdapter(arrayAdapter);
-        autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String item = arrayAdapter.getItem(position);
-                Toast.makeText(MainActivity.this, item, Toast.LENGTH_SHORT).show();
-            }
-        });
         AutoCompleteTextView dateTextView = dialog.findViewById(R.id.setDateCalender);
+        EditText titleCalendar = dialog.findViewById(R.id.editTextTitleCalender);
+        EditText descriptionCalendar = dialog.findViewById(R.id.editTextDescriptionCalender);
         Calendar calendar1 = Calendar.getInstance();
         int year1 = calendar1.get(Calendar.YEAR);
         int month1 = calendar1.get(Calendar.MONTH);
@@ -200,12 +296,41 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button addCalendar = dialog.findViewById(R.id.btnSetTime);
+        addCalendar.setOnClickListener(v -> {
+            addEvent(dialog, titleCalendar.getText().toString(), descriptionCalendar.getText().toString(), startTimeTextView.getText().toString(), endTimeTextView.getText().toString(), dateTextView.getText().toString());
+        });
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
         dialog.getWindow().setGravity(Gravity.BOTTOM);
         dialog.show();
 
+    }
+
+    private void addEvent(Dialog dialog, String title, String description, String startTime, String endTime, String date) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            try {
+                calendarService.addEvent(title, description, startTime, endTime, date);
+                Thread.sleep(1000);
+                runOnUiThread(() -> {
+                    Toast.makeText(MainActivity.this, "Thêm sự kiện thành công", Toast.LENGTH_SHORT).show();
+                    if (dialog.isShowing()) {
+                        dialog.dismiss();
+                    }
+                    HomeFragment homeFragment = (HomeFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_layout);
+                    if (homeFragment != null) {
+                        homeFragment.loadEvents();
+                    }
+                });
+            } catch (Exception e) {
+
+                runOnUiThread(() -> {
+                    Log.d("Event", e.getMessage());
+                    Toast.makeText(MainActivity.this, "Lỗi khi thêm sự kiện", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
 }
