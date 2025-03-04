@@ -3,6 +3,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -53,8 +54,10 @@ dependencies {
 
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation("com.google.firebase:firebase-database-ktx:21.0.0")
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.database)
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.api-client:google-api-client-android:1.33.0")
     implementation("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
@@ -62,4 +65,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
 }
+
