@@ -162,6 +162,7 @@ public class MusicChildMainFragment extends Fragment {
             @Override
             public void onChanged(Integer position) {
                 songChange(v, position);
+                Log.i("Info", "It runs");
             }
         });
 
@@ -184,7 +185,7 @@ public class MusicChildMainFragment extends Fragment {
             mediaPlayer = null;
         }
 
-        Song selected_song = null;
+        Song selected_song;
 
         if(position == listView.getCount()){
             selected_song = (Song) listView.getItemAtPosition(0);
