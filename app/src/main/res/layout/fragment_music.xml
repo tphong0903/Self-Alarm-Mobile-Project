@@ -5,10 +5,10 @@
     android:layout_height="match_parent"
     tools:context=".MusicFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <FrameLayout
+        android:id="@+id/music_child_fragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="music ne" />
+        android:layout_gravity="center"
+        android:layout_height="match_parent"/>
 
 </FrameLayout>
