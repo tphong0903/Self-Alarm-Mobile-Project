@@ -2,9 +2,6 @@ package hcmute.edu.vn.selfalarmproject.model;
 
 import java.io.Serializable;
 
-import lombok.ToString;
-
-@ToString
 public class Song implements Serializable {
     private int songFileID;
     private int imgID;
@@ -31,10 +28,18 @@ public class Song implements Serializable {
         this.duration = duration;
     }
 
-    public String getTitle() { return title; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getAuthor() { return author; }
-    public String getDuration() { return duration; }
+    public String getAuthor() {
+        return author;
+    }
+
+    public String getDuration() {
+        return duration;
+    }
+
     public int getImgID() {
         return imgID;
     }
