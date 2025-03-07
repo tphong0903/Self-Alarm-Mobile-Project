@@ -28,10 +28,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.Adapter.ContactAdapter;
+import hcmute.edu.vn.selfalarmproject.Model.Message;
 
 public class NewMessageActivity extends AppCompatActivity {
     private EditText tvTitle, etMessage;
@@ -79,10 +83,12 @@ public class NewMessageActivity extends AppCompatActivity {
         DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
 
         btnSend.setOnClickListener(v -> {
-            String message = etMessage.getText().toString().trim();
-            if (!message.isEmpty()) {
-                Toast.makeText(this, "Tin nhắn: " + message, Toast.LENGTH_SHORT).show();
-                sendSMS(message, selectedMessageId);
+            String messageContent = etMessage.getText().toString().trim();
+            String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+            Message message = new Message(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
+            if (!messageContent.isEmpty()) {
+                Toast.makeText(this, "Tin nhắn: " + messageContent, Toast.LENGTH_SHORT).show();
+                sendSMS(messageContent, selectedMessageId);
                 messagesRef.push().setValue(message)
                         .addOnSuccessListener(aVoid -> Log.d("Firebase", "Gửi tin nhắn thành công!"))
                         .addOnFailureListener(e -> Log.e("Firebase", "Lỗi khi gửi tin nhắn", e));
