@@ -78,11 +78,12 @@ public class NewMessageActivity extends AppCompatActivity {
         });
 
         rvMessages.setAdapter(contactAdapter);
-        String selectedMessageId=tvTitle.getText().toString();
+
         checkPermissions();
         DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
 
         btnSend.setOnClickListener(v -> {
+            String selectedMessageId = tvTitle.getText().toString();
             String messageContent = etMessage.getText().toString().trim();
             String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
             Message message = new Message(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
@@ -100,7 +101,8 @@ public class NewMessageActivity extends AppCompatActivity {
 
         tvTitle.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -113,7 +115,8 @@ public class NewMessageActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -159,6 +162,7 @@ public class NewMessageActivity extends AppCompatActivity {
 
         contactAdapter.notifyDataSetChanged();
     }
+
     public void sendSMS(String messageText, String phone) {
         SmsManager smsManager = SmsManager.getDefault();
         try {
@@ -168,6 +172,7 @@ public class NewMessageActivity extends AppCompatActivity {
             Log.e("SMS", "Lỗi khi gửi tin nhắn SMS", e);
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

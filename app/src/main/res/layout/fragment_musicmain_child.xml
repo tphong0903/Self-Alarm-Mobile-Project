@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MusicChildMainFragment">
+
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="90dp">
+
+    </ListView>
+
+    <RelativeLayout
+        android:id="@+id/musicBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:visibility="invisible"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginVertical="10dp"
+        android:background="@color/teal_200"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp">
+
+        <ImageView
+            android:id="@+id/musicBar_img"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/daudetruongthanh" />
+
+        <LinearLayout
+            android:id="@+id/musicBar_textContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_toEndOf="@+id/musicBar_img"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/musicBar_title"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:text="Đau để trưởng thành"
+                android:lines="1"
+                android:textSize="25dp" />
+
+            <TextView
+                android:id="@+id/musicBar_artist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OnlyC"
+                android:textSize="15dp" />
+
+<!--                <TextView-->
+<!--                    android:id="@+id/timeDemo"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="demo"/>-->
+
+<!--                <TextView-->
+<!--                    android:id="@+id/remainDemo"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="demo"/>-->
+
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/musicBar_btn"
+            android:layout_toEndOf="@+id/musicBar_textContainer"
+            android:layout_width="50dp"
+            android:layout_centerVertical="true"
+            android:layout_height="50dp"
+            android:src="@drawable/baseline_play_arrow_24" />
+
+    </RelativeLayout>
+
+</FrameLayout>
