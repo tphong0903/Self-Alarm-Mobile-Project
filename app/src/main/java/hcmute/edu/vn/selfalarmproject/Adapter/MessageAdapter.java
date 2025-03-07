@@ -37,9 +37,11 @@ import hcmute.edu.vn.selfalarmproject.R;
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
     private List<Message> messageList;
     private Context context;
+
     public interface OnMessageClickListener {
         void onMessageClick(String messageId);
     }
+
     private OnMessageClickListener listener;
 
 
@@ -58,14 +60,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
         Message message = messageList.get(position);
-        if (message.getSender().equals("Tôi")){
-            holder.tvSender.setText(message.getId());
 
-        }
-        else{
-            holder.tvSender.setText(message.getSender());
-        }
-        String sender = message.getSender();
+        Log.d("MessageAdapter", "onBindViewHolder: " + message.getId());
+        String sender = message.getId();
         String contactName = getContactName(context, sender);
 
         if (contactName != null) {
@@ -95,8 +92,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 Intent intent = new Intent(context, ChatActivity.class);
                 intent.putExtra("messageId", message.getId());
                 context.startActivity(intent);
-            }
-            else {
+            } else {
                 notifyItemChanged(position);
                 Bundle bundle = new Bundle();
                 bundle.putString("messageId", message.getId());
@@ -132,6 +128,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         messageList.remove(position);
         notifyItemRemoved(position);
     }
+
     private String getContactName(Context context, String phoneNumber) {
         ContentResolver cr = context.getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
@@ -182,6 +179,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         });
     }
+
     private void updateMessagesById(String messageId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
         DatabaseReference messagesRef = database.getReference("messages");
@@ -203,8 +201,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         });
     }
-
-
 
 
 }
