@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.adapter;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,11 +10,11 @@ import android.widget.TextView;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.model.Song;
+import hcmute.edu.vn.selfalarmproject.models.SongModel;
 
 public class ListViewAdapter extends BaseAdapter {
-    private List<Song> songs;
-    public ListViewAdapter(List<Song> songs) {
+    private List<SongModel> songs;
+    public ListViewAdapter(List<SongModel> songs) {
         this.songs = songs;
     }
 
@@ -42,7 +42,7 @@ public class ListViewAdapter extends BaseAdapter {
             viewProduct = View.inflate(parent.getContext(), R.layout.list_item, null);
         } else viewProduct = convertView;
 
-        Song player = (Song) getItem(position);
+        SongModel player = (SongModel) getItem(position);
         ((ImageView) viewProduct.findViewById(R.id.playerImg)).setImageResource(player.getImgID());
         ((TextView) viewProduct.findViewById(R.id.playerName)).setText(player.getTitle());
         ((TextView) viewProduct.findViewById(R.id.playerCountry)).setText(String.format(player.getAuthor()));

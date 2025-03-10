@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.Model;
+package hcmute.edu.vn.selfalarmproject.models;
 
 public class Message {
     private String id;

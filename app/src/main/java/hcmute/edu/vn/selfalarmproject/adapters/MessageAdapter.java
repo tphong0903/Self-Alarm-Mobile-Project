@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.Adapter;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
 import static android.content.ContentValues.TAG;
 
@@ -17,8 +17,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.database.DataSnapshot;
@@ -29,16 +27,15 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.ChatActivity;
-import hcmute.edu.vn.selfalarmproject.HomeFragment;
-import hcmute.edu.vn.selfalarmproject.Model.Message;
+import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.views.ChatActivity;
 import hcmute.edu.vn.selfalarmproject.R;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
     private List<Message> messageList;
     private Context context;
 
-    public interface OnMessageClickListener {
+    public static interface OnMessageClickListener {
         void onMessageClick(String messageId);
     }
 

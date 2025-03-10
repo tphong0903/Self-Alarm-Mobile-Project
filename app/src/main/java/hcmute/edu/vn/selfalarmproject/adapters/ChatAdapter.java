@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.Adapter;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.Model.Message;
 import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.models.Message;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
     private List<Message> messageList;

@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -7,6 +7,8 @@ import android.view.ViewGroup;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
+
+import hcmute.edu.vn.selfalarmproject.R;
 
 
 public class MusicFragment extends Fragment {

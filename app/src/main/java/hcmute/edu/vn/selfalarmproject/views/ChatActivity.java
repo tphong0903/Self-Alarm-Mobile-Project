@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import static android.content.ContentValues.TAG;
 
@@ -22,8 +22,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import hcmute.edu.vn.selfalarmproject.Adapter.ChatAdapter;
-import hcmute.edu.vn.selfalarmproject.Model.Message;
+import hcmute.edu.vn.selfalarmproject.adapters.ChatAdapter;
+import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.R;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;

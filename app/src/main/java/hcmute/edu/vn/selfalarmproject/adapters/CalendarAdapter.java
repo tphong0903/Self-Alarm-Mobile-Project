@@ -1,5 +1,6 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,9 @@ import com.google.api.services.calendar.model.Event;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.models.CalendarViewHolder;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
 
@@ -37,6 +41,9 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull CalendarViewHolder holder, int position) {
+        int nightModeFlags = holder.itemView.getContext().getResources().getConfiguration().uiMode &
+                Configuration.UI_MODE_NIGHT_MASK;
+        boolean isDarkMode = (nightModeFlags == Configuration.UI_MODE_NIGHT_YES);
         String dayText = daysOfMonth.get(position);
         holder.dayOfMonth.setText(dayText);
 
@@ -46,9 +53,12 @@ public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {
                 holder.dayOfMonth.setBackgroundResource(R.drawable.circle_event);
                 holder.dayOfMonth.setTextColor(Color.WHITE);
             } else {
-                holder.dayOfMonth.setBackgroundResource(R.drawable.circle_background);
+                if (isDarkMode) {
+                    holder.dayOfMonth.setTextColor(Color.WHITE);
+                } else {
+                    holder.dayOfMonth.setTextColor(Color.BLACK);
+                }
             }
-            // Nếu người dùng chọn ngày, thay đổi màu sắc
             if (day == selectedDay) {
                 holder.dayOfMonth.setBackgroundResource(R.drawable.circle_selected);
                 holder.dayOfMonth.setTextColor(Color.WHITE);

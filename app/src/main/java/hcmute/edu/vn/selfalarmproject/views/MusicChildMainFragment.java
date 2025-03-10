@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
@@ -23,28 +22,17 @@ import androidx.lifecycle.ViewModelProvider;
 import java.util.ArrayList;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.adapter.ListViewAdapter;
-import hcmute.edu.vn.selfalarmproject.model.ShareViewModel;
-import hcmute.edu.vn.selfalarmproject.model.Song;
+import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.models.SongModel;
+import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.adapters.ListViewAdapter;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link MusicChildMainFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class MusicChildMainFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     MediaPlayer mediaPlayer;
-    ShareViewModel viewModel;
+    ShareSongViewModel viewModel;
     Handler handler;
     TextView temp, remain;
     RelativeLayout musicBar;
@@ -69,37 +57,6 @@ public class MusicChildMainFragment extends Fragment {
         }
     };
 
-    public MusicChildMainFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment MusicChildFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static MusicChildMainFragment newInstance(String param1, String param2) {
-        MusicChildMainFragment fragment = new MusicChildMainFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -108,7 +65,7 @@ public class MusicChildMainFragment extends Fragment {
 
         ComponentInit(v);
 
-        List<Song> musicList = new ArrayList<>();
+        List<SongModel> musicList = new ArrayList<>();
 
         int[] rawFiles = {
                 R.raw.duchotanthe,
@@ -142,9 +99,9 @@ public class MusicChildMainFragment extends Fragment {
 //        Log.i("Info", rawFiles.length + "");
 
         for (int i = 0; i < rawFiles.length; i++) {
-            Song music = getMusicMetadata(rawFiles[i]);
+            SongModel music = getMusicMetadata(rawFiles[i]);
             if (music != null) {
-                musicList.add(new Song(rawFiles[i], songImg[i], music.getTitle(), music.getAuthor(),  music.getDuration()));
+                musicList.add(new SongModel(rawFiles[i], songImg[i], music.getTitle(), music.getAuthor(),  music.getDuration()));
             }
             else {
                 Log.d("Debug", "Empty raw file");
@@ -185,19 +142,19 @@ public class MusicChildMainFragment extends Fragment {
             mediaPlayer = null;
         }
 
-        Song selected_song;
+        SongModel selected_song;
 
         if(position == listView.getCount()){
-            selected_song = (Song) listView.getItemAtPosition(0);
+            selected_song = (SongModel) listView.getItemAtPosition(0);
             viewModel.setPosition(0);
         }
         else if(position < 0){
             int curr_pos = listView.getCount() - 1;
-            selected_song = (Song) listView.getItemAtPosition(curr_pos);
+            selected_song = (SongModel) listView.getItemAtPosition(curr_pos);
             viewModel.setPosition(curr_pos);
         }
         else {
-            selected_song = (Song) listView.getItemAtPosition(position);
+            selected_song = (SongModel) listView.getItemAtPosition(position);
         }
 
         mediaPlayer = MediaPlayer.create(getContext(), selected_song.getSongFileID());
@@ -219,7 +176,7 @@ public class MusicChildMainFragment extends Fragment {
         startUpdatingTime();
     }
     private void ComponentInit(View v){
-        viewModel = new ViewModelProvider(requireActivity()).get(ShareViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
         handler = new Handler();
 
         musicBar = v.findViewById(R.id.musicBar);
@@ -234,7 +191,7 @@ public class MusicChildMainFragment extends Fragment {
     private void stopUpdatingTime() {
         handler.removeCallbacks(updateTimeRunnable);
     }
-    private Song getMusicMetadata(int resId) {
+    private SongModel getMusicMetadata(int resId) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
             retriever.setDataSource(this.getContext(), Uri.parse("android.resource://" + this.getContext().getPackageName() + "/" + resId));
@@ -250,7 +207,7 @@ public class MusicChildMainFragment extends Fragment {
             int duration = Integer.parseInt(durationMs);
             String formattedDuration = formatDuration(duration);
 
-            return new Song(title, author, formattedDuration);
+            return new SongModel(title, author, formattedDuration);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

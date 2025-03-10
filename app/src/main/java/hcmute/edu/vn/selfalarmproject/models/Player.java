@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.model;
+package hcmute.edu.vn.selfalarmproject.models;
 
 import java.io.Serializable;
 import java.util.ArrayList;

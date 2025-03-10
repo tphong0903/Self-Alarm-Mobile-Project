@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 
 import android.content.Intent;
@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,8 +32,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.Adapter.MessageAdapter;
-import hcmute.edu.vn.selfalarmproject.Model.Message;
+import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
+import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.R;
 
 public class MessageFragment extends Fragment {
     private RecyclerView recyclerView;

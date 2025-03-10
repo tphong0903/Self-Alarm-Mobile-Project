@@ -1,6 +1,5 @@
-package hcmute.edu.vn.selfalarmproject.Adapter;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.LayoutInflater;

@@ -10,8 +10,6 @@
         android:title="Music"
         android:icon="@drawable/baseline_music_note_24" />
 
-    <item android:title="" />
-
     <item
         android:id="@+id/menu_phone"
         android:title="Phone"

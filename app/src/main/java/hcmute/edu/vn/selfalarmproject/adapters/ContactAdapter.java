@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.Adapter;
+package hcmute.edu.vn.selfalarmproject.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +11,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
     private final List<String> contactList;
     private final OnContactClickListener listener;
 
-    public interface OnContactClickListener {
+    public static interface OnContactClickListener {
         void onContactClick(String contact);
     }
 
