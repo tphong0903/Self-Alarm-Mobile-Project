@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             transport = GoogleNetHttpTransport.newTrustedTransport();
             credential = GoogleAccountCredential.usingOAuth2(
-                    getApplicationContext(), Collections.singleton(CalendarScopes.CALENDAR_READONLY));
+                    getApplicationContext(), Collections.singleton(CalendarScopes.CALENDAR));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
@@ -87,8 +87,8 @@ public class MainActivity extends AppCompatActivity {
         }
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
-                .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR_READONLY))
-                .requestServerAuthCode("634522600018-hljitpeajl1d02938trv731vqfab9th4.apps.googleusercontent.com", true)
+                .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR))
+                .requestIdToken("634522600018-hljitpeajl1d02938trv731vqfab9th4.apps.googleusercontent.com")
                 .build();
 
         googleSignInClient = GoogleSignIn.getClient(getApplicationContext(), gso);
