@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.model;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
 import android.media.MediaPlayer;
 
@@ -6,8 +6,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class ShareViewModel extends ViewModel {
-    private final MutableLiveData<Song> data = new MutableLiveData<>();
+import hcmute.edu.vn.selfalarmproject.models.SongModel;
+
+public class ShareSongViewModel extends ViewModel {
+    private final MutableLiveData<SongModel> data = new MutableLiveData<>();
     private final MutableLiveData<Integer> passTime = new MutableLiveData<>();
     private final MutableLiveData<Integer> remainTime = new MutableLiveData<>();
     private final MutableLiveData<Integer> songDuration = new MutableLiveData<>();
@@ -20,11 +22,11 @@ public class ShareViewModel extends ViewModel {
     public LiveData<MediaPlayer> getSongMeta(){
         return song;
     }
-    public void setSong(Song value) {
+    public void setSong(SongModel value) {
         data.setValue(value);
     }
 
-    public LiveData<Song> getSong() {
+    public LiveData<SongModel> getSong() {
         return data;
     }
     public void setPassTime(Integer val){

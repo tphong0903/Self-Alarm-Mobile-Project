@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import android.content.ContentResolver;
 import android.content.Intent;
@@ -25,7 +25,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.Adapter.PhoneAdapter;
+import hcmute.edu.vn.selfalarmproject.adapters.PhoneAdapter;
+import hcmute.edu.vn.selfalarmproject.R;
 
 public class PhoneFragment extends Fragment {
     private final List<String[]> contactList = new ArrayList<>();

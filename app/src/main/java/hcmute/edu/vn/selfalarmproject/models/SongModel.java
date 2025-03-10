@@ -1,8 +1,8 @@
-package hcmute.edu.vn.selfalarmproject.model;
+package hcmute.edu.vn.selfalarmproject.models;
 
 import java.io.Serializable;
 
-public class Song implements Serializable {
+public class SongModel implements Serializable {
     private int songFileID;
     private int imgID;
     private String title;
@@ -12,7 +12,7 @@ public class Song implements Serializable {
         return songFileID;
     }
 
-    public Song(int songFileID, int imgID, String title, String author, String duration) {
+    public SongModel(int songFileID, int imgID, String title, String author, String duration) {
         this.songFileID = songFileID;
         this.imgID = imgID;
         this.title = title;
@@ -22,7 +22,7 @@ public class Song implements Serializable {
 
     private String duration;
 
-    public Song(String title, String author, String duration) {
+    public SongModel(String title, String author, String duration) {
         this.title = title;
         this.author = author;
         this.duration = duration;

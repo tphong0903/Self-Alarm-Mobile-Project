@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.Adapter;
+package hcmute.edu.vn.selfalarmproject.models;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -15,8 +15,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-
-import hcmute.edu.vn.selfalarmproject.Model.Message;
 
 public class SmsReceiver extends BroadcastReceiver {
     private static final String TAG = "SmsReceiver";

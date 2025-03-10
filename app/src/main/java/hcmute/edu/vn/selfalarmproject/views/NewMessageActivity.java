@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import android.content.ContentResolver;
 import android.content.pm.PackageManager;
@@ -34,8 +34,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import hcmute.edu.vn.selfalarmproject.Adapter.ContactAdapter;
-import hcmute.edu.vn.selfalarmproject.Model.Message;
+import hcmute.edu.vn.selfalarmproject.adapters.ContactAdapter;
+import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.R;
 
 public class NewMessageActivity extends AppCompatActivity {
     private EditText tvTitle, etMessage;

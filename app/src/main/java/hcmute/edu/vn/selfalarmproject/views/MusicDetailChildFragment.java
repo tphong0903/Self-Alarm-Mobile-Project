@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -16,8 +16,9 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import hcmute.edu.vn.selfalarmproject.model.ShareViewModel;
-import hcmute.edu.vn.selfalarmproject.model.Song;
+import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.models.SongModel;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -34,7 +35,7 @@ public class MusicDetailChildFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
-    ShareViewModel viewModel;
+    ShareSongViewModel viewModel;
     MediaPlayer mediaPlayer;
     ImageView songImg;
     ProgressBar progressBar;
@@ -111,9 +112,9 @@ public class MusicDetailChildFragment extends Fragment {
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
-        viewModel.getSong().observe(getViewLifecycleOwner(), new Observer<Song>() {
+        viewModel.getSong().observe(getViewLifecycleOwner(), new Observer<SongModel>() {
             @Override
-            public void onChanged(Song value) {
+            public void onChanged(SongModel value) {
                 titleTextView.setText(value.getTitle());
                 artistTextView.setText(value.getAuthor());
                 songImg.setImageResource(value.getImgID());
@@ -168,7 +169,7 @@ public class MusicDetailChildFragment extends Fragment {
         play = view.findViewById(R.id.playBtn);
         next = view.findViewById(R.id.nextBtn);
 
-        viewModel = new ViewModelProvider(requireActivity()).get(ShareViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
     }
 
     public void switchFragment() {

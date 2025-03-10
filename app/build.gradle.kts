@@ -16,15 +16,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        val localProperties = Properties()
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localProperties.load(FileInputStream(localPropertiesFile))
-        }
-        val googleApiKey = localProperties.getProperty("GOOGLE_API_KEY") ?: ""
-
-
-        resValue("string", "google_api_key", googleApiKey)
     }
 
     buildTypes {

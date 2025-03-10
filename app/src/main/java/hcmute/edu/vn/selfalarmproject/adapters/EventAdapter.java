@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.adapters;
 
 import android.content.Context;
 import android.util.Log;
@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+
+import hcmute.edu.vn.selfalarmproject.R;
 
 public class EventAdapter extends ArrayAdapter<Event> {
 

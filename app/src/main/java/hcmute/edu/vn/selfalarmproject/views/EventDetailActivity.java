@@ -1,7 +1,9 @@
-package hcmute.edu.vn.selfalarmproject;
+package hcmute.edu.vn.selfalarmproject.views;
 
 
-import static hcmute.edu.vn.selfalarmproject.MainActivity.calendarService;
+
+
+import static hcmute.edu.vn.selfalarmproject.views.MainActivity.googleCalendarManager;
 
 import android.app.DatePickerDialog;
 import android.app.Dialog;
@@ -35,6 +37,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
+
+import hcmute.edu.vn.selfalarmproject.adapters.EventAdapter;
+import hcmute.edu.vn.selfalarmproject.R;
 
 public class EventDetailActivity extends AppCompatActivity {
     private ArrayList<Event> listEvent = new ArrayList<>();
@@ -70,8 +75,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private void fetchCalendarEvents(int Month, int Year) {
         Executors.newCachedThreadPool().execute(() -> {
             try {
-
-                List<Event> events = calendarService.fetchCalendarEvents(daytext, Month, Year);
+                List<Event> events = googleCalendarManager.fetchCalendarEvents(daytext, Month, Year);
                 runOnUiThread(() -> {
                     listEvent.clear();
                     listEvent.addAll(events);
@@ -88,7 +92,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private void deleteEvent(String id, Dialog dialog) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-                calendarService.deleteEvent(id);
+                googleCalendarManager.deleteEvent(id);
                 Thread.sleep(1000);
                 runOnUiThread(() -> {
                     Toast.makeText(EventDetailActivity.this, "Xóa sự kiện thành công", Toast.LENGTH_SHORT).show();
@@ -108,8 +112,7 @@ public class EventDetailActivity extends AppCompatActivity {
     private void editEvent(String id, Dialog dialog, String title, String description, String startTime, String endTime, String date) {
         Executors.newSingleThreadExecutor().execute(() -> {
             try {
-
-                calendarService.editEvent(id, title, description, startTime, endTime, date);
+                googleCalendarManager.editEvent(id, title, description, startTime, endTime, date);
                 Thread.sleep(1000);
                 runOnUiThread(() -> {
                     Toast.makeText(EventDetailActivity.this, "Cập nhật sự kiện thành công", Toast.LENGTH_SHORT).show();
