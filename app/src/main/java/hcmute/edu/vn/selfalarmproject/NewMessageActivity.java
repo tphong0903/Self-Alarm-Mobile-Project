@@ -28,10 +28,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.Adapter.ContactAdapter;
+import hcmute.edu.vn.selfalarmproject.Model.Message;
 
 public class NewMessageActivity extends AppCompatActivity {
     private EditText tvTitle, etMessage;
@@ -74,15 +78,18 @@ public class NewMessageActivity extends AppCompatActivity {
         });
 
         rvMessages.setAdapter(contactAdapter);
-        String selectedMessageId=tvTitle.getText().toString();
+
         checkPermissions();
         DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
 
         btnSend.setOnClickListener(v -> {
-            String message = etMessage.getText().toString().trim();
-            if (!message.isEmpty()) {
-                Toast.makeText(this, "Tin nhắn: " + message, Toast.LENGTH_SHORT).show();
-                sendSMS(message, selectedMessageId);
+            String selectedMessageId = tvTitle.getText().toString();
+            String messageContent = etMessage.getText().toString().trim();
+            String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+            Message message = new Message(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
+            if (!messageContent.isEmpty()) {
+                Toast.makeText(this, "Tin nhắn: " + messageContent, Toast.LENGTH_SHORT).show();
+                sendSMS(messageContent, selectedMessageId);
                 messagesRef.push().setValue(message)
                         .addOnSuccessListener(aVoid -> Log.d("Firebase", "Gửi tin nhắn thành công!"))
                         .addOnFailureListener(e -> Log.e("Firebase", "Lỗi khi gửi tin nhắn", e));
@@ -94,7 +101,8 @@ public class NewMessageActivity extends AppCompatActivity {
 
         tvTitle.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -107,7 +115,8 @@ public class NewMessageActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
     }
 
@@ -153,6 +162,7 @@ public class NewMessageActivity extends AppCompatActivity {
 
         contactAdapter.notifyDataSetChanged();
     }
+
     public void sendSMS(String messageText, String phone) {
         SmsManager smsManager = SmsManager.getDefault();
         try {
@@ -162,6 +172,7 @@ public class NewMessageActivity extends AppCompatActivity {
             Log.e("SMS", "Lỗi khi gửi tin nhắn SMS", e);
         }
     }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
