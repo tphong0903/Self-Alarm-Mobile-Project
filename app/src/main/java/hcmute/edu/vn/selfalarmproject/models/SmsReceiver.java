@@ -28,7 +28,7 @@ public class SmsReceiver extends BroadcastReceiver {
                 if (pdus != null) {
                     for (Object pdu : pdus) {
                         String format = bundle.getString("format");
-                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu,format);
+                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
 
                         String sender = smsMessage.getDisplayOriginatingAddress();
                         String messageBody = smsMessage.getMessageBody();
@@ -39,7 +39,7 @@ public class SmsReceiver extends BroadcastReceiver {
                         Log.d(TAG, "Tin nhắn mới từ: " + sender + ", Nội dung: " + messageBody);
                         Toast.makeText(context, "Tin nhắn từ " + sender + ": " + messageBody, Toast.LENGTH_LONG).show();
 
-                        Message newMessage = new Message(sender,sender,"Tôi", messageBody, false, time);
+                        Message newMessage = new Message(sender, sender, "Tôi", messageBody, false, time);
 
                         saveMessageToFirebase(newMessage);
 
@@ -58,7 +58,6 @@ public class SmsReceiver extends BroadcastReceiver {
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
         DatabaseReference messagesRef = database.getReference("messages");
 
-        // Push tin nhắn mới lên Firebase
         messagesRef.push().setValue(message)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Lưu tin nhắn thành công!"))
                 .addOnFailureListener(e -> Log.e(TAG, "Lỗi khi lưu tin nhắn", e));

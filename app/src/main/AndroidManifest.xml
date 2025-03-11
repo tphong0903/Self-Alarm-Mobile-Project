@@ -21,10 +21,18 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
 
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
     <queries>
         <package android:name="com.android.sms" />
     </queries>
+    <queries>
+        <intent>
+            <action android:name="android.telecom.CallScreeningService" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -36,12 +44,27 @@
         android:theme="@style/Theme.SelfAlarmProject"
         tools:targetApi="31">
         <activity android:name=".views.ChatActivity" />
-        <activity android:name=".views.NewMessageActivity" />
+        <activity
+            android:name=".views.NewMessageActivity"
+            android:parentActivityName=".views.MainActivity" />
+
+        <service
+            android:name=".service.CallScreenerService"
+            android:permission="android.permission.BIND_SCREENING_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.telecom.CallScreeningService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.telecom.CALL_SCREENING_FILTER"
+                android:value="android.telecom.CallScreeningService.GENERAL_PURPOSE" />
+        </service>
 
         <activity
             android:name=".views.EventDetailActivity"
             android:parentActivityName=".views.MainActivity"
             android:exported="false" />
+        <activity android:name=".views.BlacklistActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -56,6 +79,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <receiver
             android:name=".models.SmsReceiver"
             android:permission="android.permission.BROADCAST_SMS"
@@ -75,8 +99,9 @@
                 <data android:scheme="sms" />
                 <data android:scheme="smsto" />
             </intent-filter>
-
         </receiver>
+
+
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
