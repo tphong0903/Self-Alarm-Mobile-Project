@@ -30,7 +30,7 @@ public class BlacklistHelper {
         }
 
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-        DatabaseReference blacklistRef = database.getReference(googleUid).child("blacklist");
+        DatabaseReference blacklistRef = database.getReference(googleUid + "blacklist").child("blacklist");
 
         blacklistRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

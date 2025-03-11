@@ -72,7 +72,7 @@ public class BlacklistActivity extends AppCompatActivity {
         googleUid = SharedPreferencesHelper.getGoogleUid(this);
         if (googleUid != null) {
             FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-            blacklistRef = database.getReference(googleUid).child("blacklist");
+            blacklistRef = database.getReference(googleUid + "blacklist").child("blacklist");
             loadBlacklist();
         } else {
             Toast.makeText(this, "Không thể xác định người dùng. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
