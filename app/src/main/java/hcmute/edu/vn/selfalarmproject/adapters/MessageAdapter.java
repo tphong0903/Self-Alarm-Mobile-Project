@@ -27,13 +27,16 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.models.Message;
-import hcmute.edu.vn.selfalarmproject.views.ChatActivity;
 import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+import hcmute.edu.vn.selfalarmproject.views.ChatActivity;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
     private List<Message> messageList;
     private Context context;
+    private String googleUid;
+
 
     public static interface OnMessageClickListener {
         void onMessageClick(String messageId);
@@ -61,7 +64,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         Log.d("MessageAdapter", "onBindViewHolder: " + message.getId());
         String sender = message.getId();
         String contactName = getContactName(context, sender);
-
+        googleUid = SharedPreferencesHelper.getGoogleUid(context);
         if (contactName != null) {
             holder.tvSender.setText(contactName);
         } else {
@@ -77,6 +80,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
             holder.tvSender.setTextColor(Color.BLACK);
             holder.tvMessageContent.setTextColor(Color.BLACK);
         }
+
 
         holder.itemView.setOnClickListener(v -> {
             if (!message.isRead()) {
@@ -157,7 +161,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     private void deleteMessagesById(String messageId) {
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-        DatabaseReference messagesRef = database.getReference("messages");
+        DatabaseReference messagesRef = database.getReference(googleUid);
 
         messagesRef.orderByChild("id").equalTo(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -178,8 +182,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     private void updateMessagesById(String messageId) {
+
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-        DatabaseReference messagesRef = database.getReference("messages");
+        DatabaseReference messagesRef = database.getReference(googleUid);
 
         messagesRef.orderByChild("id").equalTo(messageId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -187,7 +192,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
                 for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
                     messageSnapshot.getRef().child("read").setValue(true)
                             .addOnSuccessListener(aVoid -> Log.d(TAG, "✅ Đã cập nhật tin nhắn có ID: " + messageId))
-                            .addOnFailureListener(e -> Log.e(TAG, "❌ Lỗi khi cập nhậttin nhắn: " + e.getMessage(), e));
+                            .addOnFailureListener(e -> Log.e(TAG, "❌ Lỗi khi cập nhật tin nhắn: " + e.getMessage(), e));
                 }
             }
 

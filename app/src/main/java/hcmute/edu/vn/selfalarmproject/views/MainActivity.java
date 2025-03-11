@@ -1,22 +1,9 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-import android.app.DatePickerDialog;
-import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -31,17 +18,12 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.textfield.TextInputLayout;
-
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.concurrent.Executors;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
@@ -51,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Bundle savedInstanceState;
-
 
 
     public static GoogleCalendarManager googleCalendarManager;
@@ -85,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
         if (account == null) {
             googleSignInManager.signIn(this);
         } else {
+            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
             googleCalendarManager = new GoogleCalendarManager(this);
             updateUI(savedInstanceState);
 
@@ -109,12 +91,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
     private void signOut() {
         googleSignInManager.signOut(() -> {
             Toast.makeText(MainActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
 
         });
     }
+
     private void replaceFragment(Fragment fragment) {
         if (fragment != null) {
             getSupportFragmentManager()
@@ -123,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
         }
     }
+
     private void updateUI(Bundle savedInstanceState) {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -175,9 +160,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
-
-
 
 
     private void checkPermissions() {

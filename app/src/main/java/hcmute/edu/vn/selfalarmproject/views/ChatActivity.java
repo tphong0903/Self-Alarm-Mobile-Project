@@ -16,21 +16,23 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ChatAdapter;
 import hcmute.edu.vn.selfalarmproject.models.Message;
-import hcmute.edu.vn.selfalarmproject.R;
-
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -40,6 +42,8 @@ public class ChatActivity extends AppCompatActivity {
     private List<Message> messageList = new ArrayList<>();
     private DatabaseReference messagesRef;
     private String selectedMessageId;
+    private FirebaseAuth firebaseAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +70,9 @@ public class ChatActivity extends AppCompatActivity {
             selectedMessageId = intent.getStringExtra("messageId");
             Log.d(TAG, "Received message id: " + selectedMessageId);
         }
+        String googleUid = SharedPreferencesHelper.getGoogleUid(this);
 
-        messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
+        messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 
         messagesRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -108,6 +113,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
     }
+
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

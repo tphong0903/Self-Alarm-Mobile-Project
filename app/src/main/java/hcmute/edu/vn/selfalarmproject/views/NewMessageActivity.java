@@ -25,6 +25,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -34,15 +35,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ContactAdapter;
 import hcmute.edu.vn.selfalarmproject.models.Message;
-import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class NewMessageActivity extends AppCompatActivity {
     private EditText tvTitle, etMessage;
     private ImageButton btnSend;
     private RecyclerView rvMessages;
     private ContactAdapter contactAdapter;
+    private FirebaseAuth firebaseAuth;
+
     private List<String> contactList = new ArrayList<>();
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -81,7 +85,9 @@ public class NewMessageActivity extends AppCompatActivity {
         rvMessages.setAdapter(contactAdapter);
 
         checkPermissions();
-        DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
+        String googleUid = SharedPreferencesHelper.getGoogleUid(this);
+
+        DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 
         btnSend.setOnClickListener(v -> {
             String selectedMessageId = tvTitle.getText().toString();
