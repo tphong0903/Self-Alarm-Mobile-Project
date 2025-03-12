@@ -15,12 +15,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,15 +32,17 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
+import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
 import hcmute.edu.vn.selfalarmproject.models.Message;
-import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MessageFragment extends Fragment {
     private RecyclerView recyclerView;
     private MessageAdapter messageAdapter;
     private FloatingActionButton fabAddMessage;
     private DatabaseReference databaseReference;
+    private FirebaseAuth firebaseAuth;
 
     private List<Message> messages;
 
@@ -60,16 +62,19 @@ public class MessageFragment extends Fragment {
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(messageAdapter);
-        databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("messages");
+        String googleUid = SharedPreferencesHelper.getGoogleUid(getContext());
+        Log.d("MyApp", "Google UID: " + googleUid);
+        databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
         fetchMessagesFromFirebase();
         setupSwipeToDelete();
-        fabAddMessage.setOnClickListener(v ->{
+        fabAddMessage.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), NewMessageActivity.class);
             startActivity(intent);
 
         });
 
     }
+
     private void fetchMessagesFromFirebase() {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -84,10 +89,8 @@ public class MessageFragment extends Fragment {
                     if (message != null) {
                         if (!latestMessagesMap.containsKey(message.getId()) ||
                                 (message.getTime() != null && latestMessagesMap.get(message.getId()).getTime() != null &&
-                                        message.getTime().compareTo(latestMessagesMap.get(message.getId()).getTime()) > 0) || !message.getSender().equals("Tôi"))
-
-                        {
-                                latestMessagesMap.put(message.getId(), message);
+                                        message.getTime().compareTo(latestMessagesMap.get(message.getId()).getTime()) > 0) || !message.getSender().equals("Tôi")) {
+                            latestMessagesMap.put(message.getId(), message);
                         }
                     }
                 }
@@ -109,6 +112,7 @@ public class MessageFragment extends Fragment {
             }
         });
     }
+
     private void setupSwipeToDelete() {
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override

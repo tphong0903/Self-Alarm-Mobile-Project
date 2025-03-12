@@ -1,22 +1,12 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-import android.app.DatePickerDialog;
-import android.app.Dialog;
-import android.app.TimePickerDialog;
+import android.app.role.RoleManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -31,17 +21,12 @@ import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.textfield.TextInputLayout;
-
-import java.util.Calendar;
-import java.util.Locale;
-import java.util.concurrent.Executors;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
@@ -53,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private Bundle savedInstanceState;
 
 
-
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
@@ -63,6 +47,14 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("PhoneFragment", "Quyền danh bạ đã được cấp");
                 } else {
                     Log.d("PhoneFragment", "Quyền danh bạ bị từ chối");
+                }
+            });
+    private final ActivityResultLauncher<Intent> requestRoleLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    Log.d("MainActivity", "ROLE_CALL_SCREENING granted!");
+                } else {
+                    Log.e("MainActivity", "ROLE_CALL_SCREENING denied!");
                 }
             });
 
@@ -85,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         if (account == null) {
             googleSignInManager.signIn(this);
         } else {
+            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
             googleCalendarManager = new GoogleCalendarManager(this);
             updateUI(savedInstanceState);
 
@@ -109,12 +102,14 @@ public class MainActivity extends AppCompatActivity {
             });
         }
     }
+
     private void signOut() {
         googleSignInManager.signOut(() -> {
             Toast.makeText(MainActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
 
         });
     }
+
     private void replaceFragment(Fragment fragment) {
         if (fragment != null) {
             getSupportFragmentManager()
@@ -123,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                     .commit();
         }
     }
+
     private void updateUI(Bundle savedInstanceState) {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -146,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
                 signOut();
+            } else if (id == R.id.nav_blacklist) {
+                Intent intent = new Intent(MainActivity.this, BlacklistActivity.class);
+                startActivity(intent);
             }
 
             drawerLayout.closeDrawer(GravityCompat.START);
@@ -176,14 +175,35 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-
-
     private void checkPermissions() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_CONTACTS)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissionLauncher.launch(android.Manifest.permission.READ_CONTACTS);
+        String[] permissions = {
+                android.Manifest.permission.READ_CONTACTS,
+                android.Manifest.permission.READ_PHONE_STATE,
+                android.Manifest.permission.CALL_PHONE,
+                android.Manifest.permission.READ_CALL_LOG,
+                android.Manifest.permission.ANSWER_PHONE_CALLS
+        };
+
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissionLauncher.launch(permission);
+            }
+        }
+        checkCallScreeningRole();
+    }
+
+    private void checkCallScreeningRole() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            RoleManager roleManager = (RoleManager) getSystemService(Context.ROLE_SERVICE);
+            if (roleManager != null && !roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)) {
+                Intent intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING);
+                requestRoleLauncher.launch(intent);
+                Log.d("TAG", "Requesting ROLE_CALL_SCREENING...");
+            } else {
+                Log.d("TAG", "Already has ROLE_CALL_SCREENING.");
+            }
         }
     }
+
+
 }

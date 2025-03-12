@@ -16,6 +16,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+
 public class SmsReceiver extends BroadcastReceiver {
     private static final String TAG = "SmsReceiver";
 
@@ -28,7 +30,7 @@ public class SmsReceiver extends BroadcastReceiver {
                 if (pdus != null) {
                     for (Object pdu : pdus) {
                         String format = bundle.getString("format");
-                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu,format);
+                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
 
                         String sender = smsMessage.getDisplayOriginatingAddress();
                         String messageBody = smsMessage.getMessageBody();
@@ -39,9 +41,9 @@ public class SmsReceiver extends BroadcastReceiver {
                         Log.d(TAG, "Tin nhắn mới từ: " + sender + ", Nội dung: " + messageBody);
                         Toast.makeText(context, "Tin nhắn từ " + sender + ": " + messageBody, Toast.LENGTH_LONG).show();
 
-                        Message newMessage = new Message(sender,sender,"Tôi", messageBody, false, time);
+                        Message newMessage = new Message(sender, sender, "Tôi", messageBody, false, time);
 
-                        saveMessageToFirebase(newMessage);
+                        saveMessageToFirebase(newMessage, context);
 
                         Intent updateUIIntent = new Intent("hcmute.edu.vn.selfalarmproject.NEW_SMS");
                         updateUIIntent.putExtra("sender", sender);
@@ -54,11 +56,12 @@ public class SmsReceiver extends BroadcastReceiver {
         }
     }
 
-    private void saveMessageToFirebase(Message message) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-        DatabaseReference messagesRef = database.getReference("messages");
+    private void saveMessageToFirebase(Message message, Context context) {
+        String googleUid = SharedPreferencesHelper.getGoogleUid(context);
 
-        // Push tin nhắn mới lên Firebase
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
+        DatabaseReference messagesRef = database.getReference(googleUid);
+
         messagesRef.push().setValue(message)
                 .addOnSuccessListener(aVoid -> Log.d(TAG, "Lưu tin nhắn thành công!"))
                 .addOnFailureListener(e -> Log.e(TAG, "Lỗi khi lưu tin nhắn", e));
