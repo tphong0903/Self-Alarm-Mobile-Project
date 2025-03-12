@@ -1,6 +1,5 @@
 package hcmute.edu.vn.selfalarmproject.service;
 
-import static hcmute.edu.vn.selfalarmproject.MainActivity.service;
 
 import android.util.Log;
 
@@ -26,7 +25,12 @@ import java.util.concurrent.Future;
 
 
 public class CalendarService {
+    private com.google.api.services.calendar.Calendar service;
     private final ExecutorService executor = Executors.newCachedThreadPool();
+
+    public CalendarService(com.google.api.services.calendar.Calendar service) {
+        this.service = service;
+    }
 
     public List<Event> fetchCalendarEvents(int daytext, int Month, int Year) {
         Callable<List<Event>> task = () -> {

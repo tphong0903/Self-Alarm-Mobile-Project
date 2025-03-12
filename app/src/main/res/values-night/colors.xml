@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorIcon">#FFFFFF</color>
+    <color name="bottomNavIconColor">#CED3D9</color>
+    <color name="bottomNavTextColor">#CED3D9</color>
+    <color name="bottomNavIconColorClick">#FFFFFF</color>
+    <color name="bottomNavTextColorClick">#FFFFFF</color>
+    <color name="backgroundBottomAppBar">@color/lavender</color>
+</resources>

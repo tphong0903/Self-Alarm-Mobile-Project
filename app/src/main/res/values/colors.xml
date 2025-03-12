@@ -11,9 +11,9 @@
     <color name="textColorPrimary">#FF000000</color>
     <color name="backgroundShape">#FFFFFF</color>
     <color name="backgroundBottomAppBar">#FFFFFF</color>
-    <color name="bottomNavIconColor">#8692f7</color>
-    <color name="bottomNavTextColor">#8692f7</color>
-    <color name="bottomNavIconColorClick">#FFBB86FC</color>
-    <color name="bottomNavTextColorClick">#FFBB86FC</color>
-    <color name="colorIcon">#FFFFFFFF</color>
+    <color name="bottomNavIconColor">#A0A3C2</color>
+    <color name="bottomNavTextColor">#A0A3C2</color>
+    <color name="bottomNavIconColorClick">#8692f7</color>
+    <color name="bottomNavTextColorClick">#8692f7</color>
+    <color name="colorIcon">@color/black</color>
 </resources>

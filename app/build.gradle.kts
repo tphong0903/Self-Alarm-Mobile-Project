@@ -3,6 +3,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -15,15 +16,6 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-        val localProperties = Properties()
-        val localPropertiesFile = rootProject.file("local.properties")
-        if (localPropertiesFile.exists()) {
-            localProperties.load(FileInputStream(localPropertiesFile))
-        }
-        val googleApiKey = localProperties.getProperty("GOOGLE_API_KEY") ?: ""
-
-
-        resValue("string", "google_api_key", googleApiKey)
     }
 
     buildTypes {
@@ -53,8 +45,10 @@ dependencies {
 
     implementation(libs.appcompat)
     implementation(libs.material)
+    implementation("com.google.firebase:firebase-database-ktx:21.0.0")
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.firebase.database)
     implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation("com.google.api-client:google-api-client-android:1.33.0")
     implementation("com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0")
@@ -62,4 +56,6 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
 }
+
