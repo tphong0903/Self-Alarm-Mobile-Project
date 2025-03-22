@@ -1,6 +1,6 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-import android.content.BroadcastReceiver;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -46,18 +46,19 @@ import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 public class MusicChildMainFragment extends Fragment {
 //    public static MediaPlayer mediaPlayer;
     public static SimpleExoPlayer exoPlayer;
-    ShareSongViewModel viewModel;
-    Handler handler;
-    TextView temp, remain;
+    static ShareSongViewModel viewModel;
+    static Handler handler;
+    static TextView temp;
+    TextView remain;
     RelativeLayout musicBar;
     RecyclerView recyclerView;
     FirebaseFirestore firestore;
-    public static List<SongModel> musicList = new ArrayList<>();;
+    public List<SongModel> musicList = new ArrayList<>();;
     SongRecyclerAdapter songRecyclerAdapter;
     LoadingAlert loadingAlert;
     ImageButton musicBarBtn;
     private long lastClickTime;
-    private final Runnable updateTimeRunnable = new Runnable() {
+    private static final Runnable updateTimeRunnable = new Runnable() {
         @Override
         public void run() {
             if (exoPlayer != null) {
@@ -96,11 +97,14 @@ public class MusicChildMainFragment extends Fragment {
 //            SongModel songModel = musicList.get(position);
 //            serviceIntent.putExtra("title", songModel.getTitle());
 //            serviceIntent.putExtra("songURL", songModel.getSongURL());
-
-
-//            requireContext().stopService(serviceIntent);
+//            serviceIntent.putExtra("artist", songModel.getAuthor());
+//            serviceIntent.putExtra("position", position);
+//
+//
+//            if(ServiceUtils.isServiceRunning(requireContext(), MusicService.class)){
+//                requireContext().stopService(serviceIntent);
+//            }
 //            requireContext().startService(serviceIntent);
-
         });
 
         recyclerView.setAdapter(songRecyclerAdapter);
@@ -108,7 +112,8 @@ public class MusicChildMainFragment extends Fragment {
 
         if(ServiceUtils.isServiceRunning(requireContext(), MusicService.class)){
             Log.d("Service running", "Service running");
-            songChange(v, viewModel.getPosition().getValue());
+            Log.d("Pos", MusicService.pos+"");
+            songChange(v, MusicService.pos);
         }
         else {
             Log.d("Service not running", "Service not running");
@@ -156,6 +161,7 @@ public class MusicChildMainFragment extends Fragment {
         return v;
     }
     private void songChange(View v, int position){
+
         if(!musicList.isEmpty()){
             SongModel selected_song = null;
             if(position == musicList.size()){
@@ -176,23 +182,32 @@ public class MusicChildMainFragment extends Fragment {
                 musicBarArtist.setText(selected_song.getAuthor());
                 Glide.with(this).load(selected_song.getImageURL()).into(image);
 
-                MediaItem mediaItem = MediaItem.fromUri(Uri.parse(selected_song.getSongURL()));
-                exoPlayer.setMediaItem(mediaItem);
-                exoPlayer.prepare();
-                exoPlayer.play();
-                exoPlayer.addListener(new Player.Listener() {
-                    @Override
-                    public void onPlaybackStateChanged(int state) {
-                        if (state == Player.STATE_READY) { // Ensures duration is available
-                            long duration = exoPlayer.getDuration();
-                            if (duration != C.TIME_UNSET) {
-                                viewModel.setSongDuration((int) exoPlayer.getDuration());
-                            }
-                        }
-                    }
-                });
-                viewModel.setSongDuration((int) exoPlayer.getDuration());
-                startUpdatingTime();
+                Intent serviceIntent = new Intent(requireContext(), MusicService.class);
+                SongModel songModel = musicList.get(position);
+                serviceIntent.putExtra("title", songModel.getTitle());
+                serviceIntent.putExtra("songURL", songModel.getSongURL());
+                serviceIntent.putExtra("artist", songModel.getAuthor());
+                serviceIntent.putExtra("position", position);
+
+
+                requireContext().stopService(serviceIntent);
+                requireContext().startService(serviceIntent);
+
+//                MediaItem mediaItem = MediaItem.fromUri(Uri.parse(selected_song.getSongURL()));
+//                exoPlayer.setMediaItem(mediaItem);
+//                exoPlayer.prepare();
+//                exoPlayer.play();
+//                exoPlayer.addListener(new Player.Listener() {
+//                    @Override
+//                    public void onPlaybackStateChanged(int state) {
+//                        if (state == Player.STATE_READY) { // Ensures duration is available
+//                            long duration = exoPlayer.getDuration();
+//                            if (duration != C.TIME_UNSET) {
+//                                viewModel.setSongDuration((int) exoPlayer.getDuration());
+//                            }
+//                        }
+//                    }
+//                });
                 viewModel.setStatus(true);
 
 //                try {
@@ -226,7 +241,7 @@ public class MusicChildMainFragment extends Fragment {
 
     private void componentInit(View v){
         viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
-        viewModel.setPosition(-1);
+        ShareSongViewModel.setPosition(-1);
         handler = new Handler();
 //        mediaPlayer = new MediaPlayer();
         musicBar = v.findViewById(R.id.musicBar);
@@ -236,17 +251,19 @@ public class MusicChildMainFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         firestore = FirebaseFirestore.getInstance();
         loadingAlert = new LoadingAlert(getActivity());
-        exoPlayer = new SimpleExoPlayer.Builder(requireContext()).build();
+//        exoPlayer = new SimpleExoPlayer.Builder(requireContext()).build();
+        exoPlayer = MusicService.exoPlayer;
     }
 
-    private void startUpdatingTime() {
+    public static void startUpdatingTime() {
+        exoPlayer = MusicService.exoPlayer;
         handler.post(updateTimeRunnable);
     }
     private void stopUpdatingTime() {
         handler.removeCallbacks(updateTimeRunnable);
     }
     @NonNull
-    private String formatDuration(int durationMs) {
+    private static String formatDuration(int durationMs) {
         int seconds = (durationMs / 1000) % 60;
         int minutes = (durationMs / 1000) / 60;
         return minutes + ":" + String.format("%02d", seconds);

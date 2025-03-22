@@ -40,11 +40,11 @@ public class MusicFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if(MusicChildMainFragment.exoPlayer != null && MusicChildMainFragment.exoPlayer.isPlaying()){
-            MusicChildMainFragment.exoPlayer.stop();
-            MusicChildMainFragment.exoPlayer.release();
-            MusicChildMainFragment.exoPlayer = null;
-        }
-        ShareSongViewModel.setPosition(-1);
+//        if(MusicChildMainFragment.exoPlayer != null && MusicChildMainFragment.exoPlayer.isPlaying()){
+//            MusicChildMainFragment.exoPlayer.stop();
+//            MusicChildMainFragment.exoPlayer.release();
+//            MusicChildMainFragment.exoPlayer = null;
+//        }
+//        ShareSongViewModel.setPosition(-1);
     }
 }
