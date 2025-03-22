@@ -7,7 +7,7 @@
     android:padding="20dp">
 
     <ImageView
-        android:id="@+id/playerImg"
+        android:id="@+id/songImage"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:src="@drawable/fb_logo"
@@ -17,7 +17,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
-            android:id="@+id/playerName"
+            android:id="@+id/songTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PLayer Name"
@@ -27,17 +27,17 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/playerName">
+            android:layout_below="@+id/songTitle">
 
             <TextView
-                android:id="@+id/playerCountry"
+                android:id="@+id/songArtist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Country"
                 android:layout_gravity="start|center"
                 android:textSize="15sp"/>
             <TextView
-                android:id="@+id/playerBirth"
+                android:id="@+id/songDuration"
                 android:layout_gravity="end"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
