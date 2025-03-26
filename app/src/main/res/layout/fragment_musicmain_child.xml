@@ -62,7 +62,7 @@
                 android:id="@+id/timeDemo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="demo"/>
+                android:text="loading"/>
 
             <!--                <TextView-->
             <!--                    android:id="@+id/remainDemo"-->

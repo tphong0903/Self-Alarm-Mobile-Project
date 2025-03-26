@@ -115,12 +115,12 @@ public class MusicDetailChildFragment extends Fragment {
         });
 
         prev.setOnClickListener(v -> {
-            viewModel.setPosition(viewModel.getPosition().getValue() - 1);
+            ShareSongViewModel.setPosition(viewModel.getPosition().getValue() - 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
         next.setOnClickListener(v -> {
-            viewModel.setPosition(viewModel.getPosition().getValue() + 1);
+            ShareSongViewModel.setPosition(viewModel.getPosition().getValue() + 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
@@ -168,12 +168,12 @@ public class MusicDetailChildFragment extends Fragment {
             }
         });
 
-        viewModel.getSongMeta().observe(getViewLifecycleOwner(), new Observer<MediaPlayer>() {
-            @Override
-            public void onChanged(MediaPlayer mediaPlayer) {
-                play.setImageResource(R.drawable.baseline_pause_24);
-            }
-        });
+//        viewModel.getSongMeta().observe(getViewLifecycleOwner(), new Observer<MediaPlayer>() {
+//            @Override
+//            public void onChanged(MediaPlayer mediaPlayer) {
+//                play.setImageResource(R.drawable.baseline_pause_24);
+//            }
+//        });
 
         return view;
     }

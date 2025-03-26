@@ -47,7 +47,7 @@ public class SongRecyclerAdapter extends RecyclerView.Adapter<SongRecyclerAdapte
                 .into(holder.image);
         holder.title.setText(songModel.getTitle());
         holder.artist.setText(songModel.getAuthor());
-        holder.duration.setText("99:99");
+        holder.duration.setText(songModel.getDuration());
         holder.itemView.setOnClickListener(v -> listener.onItemClick(position));
     }
 

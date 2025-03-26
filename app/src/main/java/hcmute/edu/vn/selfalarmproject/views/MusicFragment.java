@@ -1,5 +1,6 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,10 +13,11 @@ import androidx.media3.common.util.UnstableApi;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 
 
 public class MusicFragment extends Fragment {
-
 
     @OptIn(markerClass = UnstableApi.class)
     @Override
@@ -23,7 +25,7 @@ public class MusicFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_music, container, false);
-        FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
+        FragmentTransaction transaction = requireActivity().getSupportFragmentManager().beginTransaction();
 
         MusicChildMainFragment mainFragment = new MusicChildMainFragment();
         MusicDetailChildFragment detailFragment = new MusicDetailChildFragment();
@@ -33,6 +35,7 @@ public class MusicFragment extends Fragment {
         transaction.hide(detailFragment);
         transaction.commit();
 
+
         return v;
     }
 
@@ -40,11 +43,8 @@ public class MusicFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-//        if(MusicChildMainFragment.exoPlayer != null && MusicChildMainFragment.exoPlayer.isPlaying()){
-//            MusicChildMainFragment.exoPlayer.stop();
-//            MusicChildMainFragment.exoPlayer.release();
-//            MusicChildMainFragment.exoPlayer = null;
+//        if(ServiceUtils.isServiceRunning(requireContext(), MusicService.class)){
+//            requireContext().stopService(new Intent(requireContext(), MusicService.class));
 //        }
-//        ShareSongViewModel.setPosition(-1);
     }
 }

@@ -27,7 +27,7 @@ import hcmute.edu.vn.selfalarmproject.views.MusicChildMainFragment;
 public class MusicService extends Service {
     public static SimpleExoPlayer exoPlayer;
     private static final String CHANNEL_ID = "MusicServiceChannel";
-    private String title, url, artist;
+    public static String title, url, artist, imageURL;
     public static int pos;
 
     @Override
@@ -49,6 +49,10 @@ public class MusicService extends Service {
         if(intent.getStringExtra("artist") != null){
             artist = intent.getStringExtra("artist");
         }
+        if(intent.getStringExtra("imageURL") != null){
+            imageURL = intent.getStringExtra("imageURL");
+        }
+
         if(intent.getIntExtra("position", -1) != -1){
             pos = intent.getIntExtra("position", -1);
         }
@@ -63,7 +67,6 @@ public class MusicService extends Service {
                 if (state == Player.STATE_READY) {
                     long duration = exoPlayer.getDuration();
                     if (duration != C.TIME_UNSET) {
-                        Log.d("Duration", exoPlayer.getDuration() + "");
                         ShareSongViewModel.setSongDuration((int) exoPlayer.getDuration());
                         MusicChildMainFragment.startUpdatingTime();
                     }
@@ -86,6 +89,7 @@ public class MusicService extends Service {
                 .setContentText(artist.isEmpty() ? "No artist" : artist)
                 .setSmallIcon(R.drawable.baseline_queue_music_24)
                 .setContentIntent(pendingIntent)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build();
     }
 

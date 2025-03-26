@@ -14,13 +14,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.media3.common.C;
-import androidx.media3.common.MediaItem;
-import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.SimpleExoPlayer;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -49,7 +47,7 @@ public class MusicChildMainFragment extends Fragment {
     static ShareSongViewModel viewModel;
     static Handler handler;
     static TextView temp;
-    TextView remain;
+    TextView remain, musicBarTitle, musicBarArtist;
     RelativeLayout musicBar;
     RecyclerView recyclerView;
     FirebaseFirestore firestore;
@@ -58,6 +56,8 @@ public class MusicChildMainFragment extends Fragment {
     LoadingAlert loadingAlert;
     ImageButton musicBarBtn;
     private long lastClickTime;
+    Intent serviceIntent;
+    ImageView image;
     private static final Runnable updateTimeRunnable = new Runnable() {
         @Override
         public void run() {
@@ -71,7 +71,6 @@ public class MusicChildMainFragment extends Fragment {
                 viewModel.setRemainTime(remainTime);
 
                 temp.setText(formatDuration(currentPosition));
-//                remain.setText(formatDuration(remainTime));
 
                 handler.postDelayed(this, 1000);
             }
@@ -87,45 +86,44 @@ public class MusicChildMainFragment extends Fragment {
         componentInit(v);
 
         songRecyclerAdapter = new SongRecyclerAdapter(this.getContext(), musicList,  position -> {
+            Log.d("Clicked", "Song clicked");
             long currentTime = System.currentTimeMillis();
             if (currentTime - lastClickTime < 1000) {
                 return;
             }
             lastClickTime = currentTime;
-            songChange(v, position);
-//            Intent serviceIntent = new Intent(requireContext(), MusicService.class);
-//            SongModel songModel = musicList.get(position);
-//            serviceIntent.putExtra("title", songModel.getTitle());
-//            serviceIntent.putExtra("songURL", songModel.getSongURL());
-//            serviceIntent.putExtra("artist", songModel.getAuthor());
-//            serviceIntent.putExtra("position", position);
-//
-//
-//            if(ServiceUtils.isServiceRunning(requireContext(), MusicService.class)){
-//                requireContext().stopService(serviceIntent);
-//            }
-//            requireContext().startService(serviceIntent);
+            ShareSongViewModel.setPosition(position);
         });
 
         recyclerView.setAdapter(songRecyclerAdapter);
         refreshList();
 
-        if(ServiceUtils.isServiceRunning(requireContext(), MusicService.class)){
+        if (ServiceUtils.isServiceRunning(requireContext(), MusicService.class)) {
             Log.d("Service running", "Service running");
-            Log.d("Pos", MusicService.pos+"");
-            songChange(v, MusicService.pos);
-        }
-        else {
+            loadingMusicBar(null, MusicService.title, MusicService.imageURL, MusicService.artist);
+        } else {
             Log.d("Service not running", "Service not running");
         }
 
-        viewModel.getPosition().observe(getViewLifecycleOwner(), new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer position) {
-                if(viewModel.getPosition().getValue() != -1){
-                    songChange(v, position);
+
+        viewModel.getPosition().removeObservers(getViewLifecycleOwner());
+        if (!viewModel.getPosition().hasActiveObservers()) {
+            viewModel.getPosition().observe(getViewLifecycleOwner(), position -> {
+                Log.i("Pos", position + "");
+                if (position != -100) {
+                    songChange(position);
                     Log.i("Info", "It runs");
                 }
+            });
+        }
+
+        viewModel.getSong().observe(getViewLifecycleOwner(), new Observer<SongModel>() {
+            @Override
+            public void onChanged(SongModel value) {
+                musicBar.setVisibility(View.VISIBLE);
+                musicBarTitle.setText(value.getTitle());
+                musicBarArtist.setText(value.getAuthor());
+                Glide.with(requireContext()).load(value.getImageURL()).into(image);
             }
         });
 
@@ -160,73 +158,50 @@ public class MusicChildMainFragment extends Fragment {
 
         return v;
     }
-    private void songChange(View v, int position){
-
+    private void songChange(int position){
+        Log.i("Song change", "Song change");
         if(!musicList.isEmpty()){
             SongModel selected_song = null;
             if(position == musicList.size()){
-                viewModel.setPosition(0);
+                ShareSongViewModel.setPosition(0);
             } else if (position < 0) {
-                viewModel.setPosition(musicList.size() - 1);
+                ShareSongViewModel.setPosition(musicList.size() - 1);
             }
             else{
                 selected_song = musicList.get(position);
-                viewModel.setSong(selected_song);
 
-                TextView musicBarTitle = (TextView) v.findViewById(R.id.musicBar_title);
-                TextView musicBarArtist = (TextView) v.findViewById(R.id.musicBar_artist);
-                ImageView image = (ImageView) v.findViewById(R.id.musicBar_img);
-
-                musicBar.setVisibility(View.VISIBLE);
-                musicBarTitle.setText(selected_song.getTitle());
-                musicBarArtist.setText(selected_song.getAuthor());
-                Glide.with(this).load(selected_song.getImageURL()).into(image);
-
-                Intent serviceIntent = new Intent(requireContext(), MusicService.class);
                 SongModel songModel = musicList.get(position);
                 serviceIntent.putExtra("title", songModel.getTitle());
                 serviceIntent.putExtra("songURL", songModel.getSongURL());
                 serviceIntent.putExtra("artist", songModel.getAuthor());
+                serviceIntent.putExtra("imageURL", songModel.getImageURL());
                 serviceIntent.putExtra("position", position);
 
+                loadingMusicBar(selected_song, null, null, null);
 
                 requireContext().stopService(serviceIntent);
                 requireContext().startService(serviceIntent);
 
-//                MediaItem mediaItem = MediaItem.fromUri(Uri.parse(selected_song.getSongURL()));
-//                exoPlayer.setMediaItem(mediaItem);
-//                exoPlayer.prepare();
-//                exoPlayer.play();
-//                exoPlayer.addListener(new Player.Listener() {
-//                    @Override
-//                    public void onPlaybackStateChanged(int state) {
-//                        if (state == Player.STATE_READY) { // Ensures duration is available
-//                            long duration = exoPlayer.getDuration();
-//                            if (duration != C.TIME_UNSET) {
-//                                viewModel.setSongDuration((int) exoPlayer.getDuration());
-//                            }
-//                        }
-//                    }
-//                });
                 viewModel.setStatus(true);
-
-//                try {
-//                    if(mediaPlayer.isPlaying()){
-//                        mediaPlayer.release();
-//                        mediaPlayer = null;
-//                    }
-//                    mediaPlayer = new MediaPlayer();
-//                    mediaPlayer.setDataSource(selected_song.getSongURL());
-//                    mediaPlayer.prepareAsync();
-//                    mediaPlayer.setOnPreparedListener(MediaPlayer::start);
-//
-//                    viewModel.setStatus(true);
-//                    startUpdatingTime();
-//                }
-//                catch (Exception e){
-//                    e.printStackTrace();
-//                }
             }
+        }
+    }
+
+    public void loadingMusicBar(SongModel selected_song, String title, String imageURL, String artist){
+        if(selected_song != null){
+            viewModel.setSong(selected_song);
+            Log.i("Song not null", "Song not null");
+            musicBar.setVisibility(View.VISIBLE);
+            musicBarTitle.setText(selected_song.getTitle());
+            musicBarArtist.setText(selected_song.getAuthor());
+            Glide.with(this).load(selected_song.getImageURL()).into(image);
+        }
+        else{
+            Log.i("Song null", "Song null");
+            musicBar.setVisibility(View.VISIBLE);
+            musicBarTitle.setText(title);
+            musicBarArtist.setText(artist);
+            Glide.with(this).load(imageURL).into(image);
         }
     }
 
@@ -234,16 +209,13 @@ public class MusicChildMainFragment extends Fragment {
     public void onDestroy() {
         Log.d("Fragment Destroy", "Fragment Destroy");
         super.onDestroy();
-        exoPlayer.stop();
-        exoPlayer.release();
-        exoPlayer = null;
+        viewModel.getPosition().removeObservers(getViewLifecycleOwner());
     }
 
     private void componentInit(View v){
         viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
-        ShareSongViewModel.setPosition(-1);
+//        ShareSongViewModel.setPosition(-100);
         handler = new Handler();
-//        mediaPlayer = new MediaPlayer();
         musicBar = v.findViewById(R.id.musicBar);
         temp = v.findViewById(R.id.timeDemo);
         musicBarBtn = v.findViewById(R.id.musicBar_btn);
@@ -251,8 +223,12 @@ public class MusicChildMainFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         firestore = FirebaseFirestore.getInstance();
         loadingAlert = new LoadingAlert(getActivity());
-//        exoPlayer = new SimpleExoPlayer.Builder(requireContext()).build();
         exoPlayer = MusicService.exoPlayer;
+        serviceIntent = new Intent(requireContext(), MusicService.class);
+
+        musicBarTitle = (TextView) v.findViewById(R.id.musicBar_title);
+        musicBarArtist = (TextView) v.findViewById(R.id.musicBar_artist);
+        image = (ImageView) v.findViewById(R.id.musicBar_img);
     }
 
     public static void startUpdatingTime() {
@@ -295,7 +271,7 @@ public class MusicChildMainFragment extends Fragment {
                                         document.getId(),
                                         document.getData().get("title").toString(),
                                         document.getData().get("artist").toString(),
-                                        null,
+                                        document.getData().get("duration").toString(),
                                         document.getData().get("image").toString(),
                                         document.getData().get("url").toString()
                                 );
