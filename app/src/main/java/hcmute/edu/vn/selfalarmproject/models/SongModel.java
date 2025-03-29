@@ -1,46 +1,27 @@
 package hcmute.edu.vn.selfalarmproject.models;
 
+import org.checkerframework.checker.units.qual.N;
+
 import java.io.Serializable;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SongModel implements Serializable {
-    private int songFileID;
-    private int imgID;
+    private String id;
     private String title;
     private String author;
-
-    public int getSongFileID() {
-        return songFileID;
-    }
-
-    public SongModel(int songFileID, int imgID, String title, String author, String duration) {
-        this.songFileID = songFileID;
-        this.imgID = imgID;
-        this.title = title;
-        this.author = author;
-        this.duration = duration;
-    }
-
     private String duration;
+    private String imageURL;
+    private String songURL;
 
-    public SongModel(String title, String author, String duration) {
+    public SongModel(String title, String author, String duration){
         this.title = title;
         this.author = author;
         this.duration = duration;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public String getDuration() {
-        return duration;
-    }
-
-    public int getImgID() {
-        return imgID;
     }
 }

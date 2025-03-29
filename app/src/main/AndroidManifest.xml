@@ -25,6 +25,9 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <queries>
         <package android:name="com.android.sms" />
     </queries>
@@ -113,6 +116,8 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+        <service android:name=".service.MusicService"
+            android:foregroundServiceType="mediaPlayback"/>
     </application>
 
 </manifest>

@@ -28,6 +28,7 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -80,8 +81,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     private void signIn() {
         googleSignInManager.signIn(this);
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, MusicService.class));
+    }
+
 
     }
 

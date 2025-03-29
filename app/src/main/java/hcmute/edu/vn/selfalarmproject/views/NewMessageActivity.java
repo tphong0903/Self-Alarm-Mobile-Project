@@ -90,7 +90,8 @@ public class NewMessageActivity extends AppCompatActivity {
         DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 
         btnSend.setOnClickListener(v -> {
-            String selectedMessageId = tvTitle.getText().toString().substring(0, 10).replaceAll("[^0-9]", "");
+            String selectedMessageId = tvTitle.getText().toString().replaceAll("[^0-9]", "");
+            Log.d("SEND", "Selected message ID: " + tvTitle.getText().toString());
             String messageContent = etMessage.getText().toString().trim();
             String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
             MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);

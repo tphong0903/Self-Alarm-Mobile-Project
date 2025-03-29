@@ -2,6 +2,7 @@ package hcmute.edu.vn.selfalarmproject.views;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,10 +12,16 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.OptIn;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.SimpleExoPlayer;
+
+import com.bumptech.glide.Glide;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
@@ -25,6 +32,7 @@ import hcmute.edu.vn.selfalarmproject.models.SongModel;
  * Use the {@link MusicDetailChildFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
+@UnstableApi
 public class MusicDetailChildFragment extends Fragment {
 
     // TODO: Rename parameter arguments, choose names that match
@@ -36,7 +44,8 @@ public class MusicDetailChildFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     ShareSongViewModel viewModel;
-    MediaPlayer mediaPlayer;
+//    MediaPlayer mediaPlayer;
+    SimpleExoPlayer exoPlayer;
     ImageView songImg;
     ProgressBar progressBar;
     TextView songPassTime, songRemainTime, titleTextView, artistTextView;
@@ -76,6 +85,7 @@ public class MusicDetailChildFragment extends Fragment {
         }
     }
 
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -89,26 +99,28 @@ public class MusicDetailChildFragment extends Fragment {
         });
 
         play.setOnClickListener(v -> {
-            mediaPlayer = viewModel.getSongMeta().getValue();
-            if(mediaPlayer != null){
-                if(mediaPlayer.isPlaying()){
-                    mediaPlayer.pause();
+            exoPlayer = MusicChildMainFragment.exoPlayer;
+            if(exoPlayer != null){
+                if(exoPlayer.isPlaying()){
+                    viewModel.setStatus(false);
+                    exoPlayer.pause();
                     play.setImageResource(R.drawable.baseline_play_arrow_24);
                 }
                 else {
-                    mediaPlayer.start();
+                    viewModel.setStatus(true);
+                    exoPlayer.play();
                     play.setImageResource(R.drawable.baseline_pause_24);
                 }
             }
         });
 
         prev.setOnClickListener(v -> {
-            viewModel.setPosition(viewModel.getPosition().getValue() - 1);
+            ShareSongViewModel.setPosition(viewModel.getPosition().getValue() - 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
         next.setOnClickListener(v -> {
-            viewModel.setPosition(viewModel.getPosition().getValue() + 1);
+            ShareSongViewModel.setPosition(viewModel.getPosition().getValue() + 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
@@ -117,7 +129,16 @@ public class MusicDetailChildFragment extends Fragment {
             public void onChanged(SongModel value) {
                 titleTextView.setText(value.getTitle());
                 artistTextView.setText(value.getAuthor());
-                songImg.setImageResource(value.getImgID());
+                Glide.with(requireContext()).load(value.getImageURL()).into(songImg);
+            }
+        });
+
+        viewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
+            if(status){
+                play.setImageResource(R.drawable.baseline_pause_24);
+            }
+            else{
+                play.setImageResource(R.drawable.baseline_play_arrow_24);
             }
         });
 
@@ -147,12 +168,12 @@ public class MusicDetailChildFragment extends Fragment {
             }
         });
 
-        viewModel.getSongMeta().observe(getViewLifecycleOwner(), new Observer<MediaPlayer>() {
-            @Override
-            public void onChanged(MediaPlayer mediaPlayer) {
-                play.setImageResource(R.drawable.baseline_pause_24);
-            }
-        });
+//        viewModel.getSongMeta().observe(getViewLifecycleOwner(), new Observer<MediaPlayer>() {
+//            @Override
+//            public void onChanged(MediaPlayer mediaPlayer) {
+//                play.setImageResource(R.drawable.baseline_pause_24);
+//            }
+//        });
 
         return view;
     }
@@ -184,6 +205,7 @@ public class MusicDetailChildFragment extends Fragment {
         transaction.commit();
     }
 
+    @NonNull
     private String formatDuration(int durationMs) {
         int seconds = (durationMs / 1000) % 60;
         int minutes = (durationMs / 1000) / 60;

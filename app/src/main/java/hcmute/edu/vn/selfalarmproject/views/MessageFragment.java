@@ -1,14 +1,17 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,9 +31,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
@@ -43,8 +46,12 @@ public class MessageFragment extends Fragment {
     private FloatingActionButton fabAddMessage;
     private DatabaseReference databaseReference;
     private FirebaseAuth firebaseAuth;
+    private EditText searchEditText;
+    private ImageView clearSearchIcon;
 
-    private List<MessageModel> messages;
+
+    private List<Message> messages;
+    private List<Message> filteredMessages;
 
     public MessageFragment() {
         super(R.layout.fragment_message);
@@ -56,61 +63,133 @@ public class MessageFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerViewMessages);
         fabAddMessage = view.findViewById(R.id.fabAddMessage);
+        searchEditText = view.findViewById(R.id.searchEditText);
+        clearSearchIcon = view.findViewById(R.id.clearSearchIcon);
 
         messages = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messages, requireContext());
+        filteredMessages = new ArrayList<>();
+        messageAdapter = new MessageAdapter(filteredMessages, requireContext());
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(messageAdapter);
+
         String googleUid = SharedPreferencesHelper.getGoogleUid(getContext());
         Log.d("MyApp", "Google UID: " + googleUid);
         databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
+
+        setupSearchFunctionality();
         fetchMessagesFromFirebase();
         setupSwipeToDelete();
+
         fabAddMessage.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), NewMessageActivity.class);
             startActivity(intent);
+        });
+    }
 
+    private void setupSearchFunctionality() {
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                messages.clear();
+                HashMap<String, Message> latestMessagesMap = new HashMap<>();
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                    Message message = messageSnapshot.getValue(Message.class);
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterMessages(s.toString());
+                clearSearchIcon.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
+            }
         });
 
+        clearSearchIcon.setOnClickListener(v -> {
+            searchEditText.setText("");
+            clearSearchIcon.setVisibility(View.GONE);
+        });
+    }
+
+    private void filterMessages(String query) {
+        filteredMessages.clear();
+
+        if (query.isEmpty()) {
+            filteredMessages.addAll(messages);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            for (Message message : messages) {
+                if (message.getContent().toLowerCase().contains(lowerCaseQuery) ||
+                        message.getSender().toLowerCase().contains(lowerCaseQuery)) {
+                    filteredMessages.add(message);
+                }
+            }
+        }
+
+        messageAdapter.notifyDataSetChanged();
     }
 
     private void fetchMessagesFromFirebase() {
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                messages.clear();
-                HashMap<String, MessageModel> latestMessagesMap = new HashMap<>();
+        databaseReference.orderByChild("time")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        messages.clear();
+                        filteredMessages.clear();
 
+                        Map<String, Message> messageMap = new HashMap<>();
 
-                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                    MessageModel message = messageSnapshot.getValue(MessageModel.class);
+                        for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                            Message message = messageSnapshot.getValue(Message.class);
 
-                    if (message != null) {
-                        if (!latestMessagesMap.containsKey(message.getId()) ||
-                                (message.getTime() != null && latestMessagesMap.get(message.getId()).getTime() != null &&
-                                        message.getTime().compareTo(latestMessagesMap.get(message.getId()).getTime()) > 0) || !message.getSender().equals("Tôi")) {
-                            latestMessagesMap.put(message.getId(), message);
+                            String messageId = message.getId();
+                            if (messageId == null) {
+                                messageId = messageSnapshot.getKey();
+                                message.setId(messageId);
+                            }
+
+                            if (message != null && message.getTime() != null) {
+                                messageMap.put(messageId, message);
+                            }
                         }
+
+                        for (Message message : messageMap.values()) {
+                            if (!message.getSender().equals("Tôi")) {
+                                messages.add(message);
+                            } else {
+                                String[] parts = message.getTime().split(":");
+                                long messageTime = Integer.parseInt(parts[0]) * 3600 +
+                                        Integer.parseInt(parts[1]) * 60 +
+                                        Integer.parseInt(parts[2]);
+
+                                long lastMessageTime = messages.isEmpty() ? 0 :
+                                        Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[0]) * 3600 +
+                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[1]) * 60 +
+                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[2]);
+
+                                if (lastMessageTime < messageTime) {
+                                    messages.add(message);
+                                }
+                            }
+                        }
+
+                        filteredMessages.addAll(messages);
+                        messageAdapter.notifyDataSetChanged();
                     }
-                }
 
-                messages.addAll(latestMessagesMap.values());
-
-                Collections.sort(messages, (m1, m2) -> {
-                    if (m1.getTime() == null || m2.getTime() == null) return 0;
-                    return m2.getTime().compareTo(m1.getTime());
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Lỗi khi tải dữ liệu", error.toException());
+                        Toast.makeText(getContext(), "Lỗi khi tải tin nhắn!", Toast.LENGTH_SHORT).show();
+                    }
                 });
-
-                messageAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Firebase", "Lỗi khi tải dữ liệu", error.toException());
-                Toast.makeText(getContext(), "Lỗi khi tải tin nhắn!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void setupSwipeToDelete() {
@@ -159,5 +238,4 @@ public class MessageFragment extends Fragment {
 
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
     }
-
 }

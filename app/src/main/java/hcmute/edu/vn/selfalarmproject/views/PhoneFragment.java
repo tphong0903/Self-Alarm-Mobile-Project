@@ -7,10 +7,14 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -25,14 +29,19 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.adapters.PhoneAdapter;
 import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.adapters.PhoneAdapter;
 
 public class PhoneFragment extends Fragment {
     private final List<String[]> contactList = new ArrayList<>();
+    private final List<String[]> filteredContactList = new ArrayList<>();
+
     private PhoneAdapter phoneAdapter;
     private RecyclerView recyclerView;
     private FloatingActionButton fabAddContact;
+    private EditText searchEditText;
+    private ImageView clearSearchIcon;
+
 
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
@@ -51,7 +60,10 @@ public class PhoneFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewContacts);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         fabAddContact = view.findViewById(R.id.fabAddContact);
-        phoneAdapter = new PhoneAdapter(contactList);
+        searchEditText = view.findViewById(R.id.searchEditText);
+        clearSearchIcon = view.findViewById(R.id.clearSearchIcon);
+
+        phoneAdapter = new PhoneAdapter(filteredContactList);
         recyclerView.setAdapter(phoneAdapter);
 
         checkPermissions();
@@ -61,8 +73,49 @@ public class PhoneFragment extends Fragment {
             v.getContext().startActivity(intent);
         });
 
-
+        setupSearchFunctionality();
         return view;
+    }
+
+    private void setupSearchFunctionality() {
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterContacts(s.toString());
+                clearSearchIcon.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
+            }
+        });
+
+        clearSearchIcon.setOnClickListener(v -> {
+            searchEditText.setText("");
+            clearSearchIcon.setVisibility(View.GONE);
+        });
+    }
+
+    private void filterContacts(String query) {
+        filteredContactList.clear();
+
+        if (query.isEmpty()) {
+            filteredContactList.addAll(contactList);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            for (String[] contact : contactList) {
+                if (contact[0].toLowerCase().contains(lowerCaseQuery) ||
+                        contact[1].toLowerCase().contains(lowerCaseQuery)) {
+                    filteredContactList.add(contact);
+                }
+            }
+        }
+
+        phoneAdapter.notifyDataSetChanged();
     }
 
     private void checkPermissions() {
@@ -76,6 +129,7 @@ public class PhoneFragment extends Fragment {
 
     private void loadContacts() {
         contactList.clear();
+        filteredContactList.clear();
         ContentResolver contentResolver = requireContext().getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
@@ -96,7 +150,9 @@ public class PhoneFragment extends Fragment {
             cursor.close();
         }
 
-        Log.d("PhoneFragment", "Số lượng danh bạ: " + contactList.size());
+        filteredContactList.addAll(contactList);
+        phoneAdapter.notifyDataSetChanged();
 
+        Log.d("PhoneFragment", "Số lượng danh bạ: " + contactList.size());
     }
 }
