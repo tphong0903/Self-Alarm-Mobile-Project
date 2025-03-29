@@ -6,14 +6,16 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
+
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
+
         <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
@@ -24,8 +26,7 @@
                     android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    android:background="?attr/colorPrimary"
-                    android:titleTextColor="@android:color/white" />
+                    android:background="?attr/colorPrimary" />
 
             </com.google.android.material.appbar.AppBarLayout>
 
@@ -34,25 +35,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:padding="8dp"/>
+                android:padding="8dp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:padding="8dp"
-                android:background="@android:color/white"
+                android:background="?attr/colorSurface"
                 android:elevation="4dp">
 
                 <EditText
                     android:id="@+id/etMessage"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:minHeight="50dp"
                     android:layout_weight="1"
                     android:hint="Nhập tin nhắn..."
-                    android:padding="12dp"
-                    android:textSize="16sp"
-                    android:background="@android:drawable/editbox_background"
-                    android:fontFamily="sans-serif"/>
+                    android:padding="10dp"
+                    android:textColor="?android:attr/textColorPrimary"
+                    android:textColorHint="?android:attr/textColorHint"
+                    android:backgroundTint="?attr/colorControlNormal" />
 
                 <Button
                     android:id="@+id/btnSend"
@@ -61,7 +64,7 @@
                     android:text="Gửi"
                     android:padding="12dp"
                     android:textSize="16sp"
-                    android:textColor="@android:color/white"/>
+                    android:textColor="?attr/colorOnPrimary" />
             </LinearLayout>
 
         </LinearLayout>

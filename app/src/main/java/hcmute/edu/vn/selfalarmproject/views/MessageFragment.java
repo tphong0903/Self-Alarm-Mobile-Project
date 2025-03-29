@@ -1,14 +1,17 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,7 +31,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
@@ -41,8 +46,11 @@ public class MessageFragment extends Fragment {
     private FloatingActionButton fabAddMessage;
     private DatabaseReference databaseReference;
     private FirebaseAuth firebaseAuth;
+    private EditText searchEditText;
+    private ImageView clearSearchIcon;
 
     private List<Message> messages;
+    private List<Message> filteredMessages;
 
     public MessageFragment() {
         super(R.layout.fragment_message);
@@ -54,23 +62,69 @@ public class MessageFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerViewMessages);
         fabAddMessage = view.findViewById(R.id.fabAddMessage);
+        searchEditText = view.findViewById(R.id.searchEditText);
+        clearSearchIcon = view.findViewById(R.id.clearSearchIcon);
 
         messages = new ArrayList<>();
-        messageAdapter = new MessageAdapter(messages, requireContext());
+        filteredMessages = new ArrayList<>();
+        messageAdapter = new MessageAdapter(filteredMessages, requireContext());
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(messageAdapter);
+
         String googleUid = SharedPreferencesHelper.getGoogleUid(getContext());
         Log.d("MyApp", "Google UID: " + googleUid);
         databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
+
+        setupSearchFunctionality();
         fetchMessagesFromFirebase();
         setupSwipeToDelete();
+
         fabAddMessage.setOnClickListener(v -> {
             Intent intent = new Intent(getContext(), NewMessageActivity.class);
             startActivity(intent);
+        });
+    }
 
+    private void setupSearchFunctionality() {
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                filterMessages(s.toString());
+                clearSearchIcon.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
+            }
         });
 
+        clearSearchIcon.setOnClickListener(v -> {
+            searchEditText.setText("");
+            clearSearchIcon.setVisibility(View.GONE);
+        });
+    }
+
+    private void filterMessages(String query) {
+        filteredMessages.clear();
+
+        if (query.isEmpty()) {
+            filteredMessages.addAll(messages);
+        } else {
+            String lowerCaseQuery = query.toLowerCase();
+            for (Message message : messages) {
+                if (message.getContent().toLowerCase().contains(lowerCaseQuery) ||
+                        message.getSender().toLowerCase().contains(lowerCaseQuery)) {
+                    filteredMessages.add(message);
+                }
+            }
+        }
+
+        messageAdapter.notifyDataSetChanged();
     }
 
     private void fetchMessagesFromFirebase() {
@@ -79,29 +133,45 @@ public class MessageFragment extends Fragment {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         messages.clear();
+                        filteredMessages.clear();
+
+                        Map<String, Message> messageMap = new HashMap<>();
 
                         for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
                             Message message = messageSnapshot.getValue(Message.class);
 
+                            String messageId = message.getId();
+                            if (messageId == null) {
+                                messageId = messageSnapshot.getKey();
+                                message.setId(messageId);
+                            }
+
                             if (message != null && message.getTime() != null) {
-                                if (!message.getSender().equals("Tôi")) {
+                                messageMap.put(messageId, message);
+                            }
+                        }
+
+                        for (Message message : messageMap.values()) {
+                            if (!message.getSender().equals("Tôi")) {
+                                messages.add(message);
+                            } else {
+                                String[] parts = message.getTime().split(":");
+                                long messageTime = Integer.parseInt(parts[0]) * 3600 +
+                                        Integer.parseInt(parts[1]) * 60 +
+                                        Integer.parseInt(parts[2]);
+
+                                long lastMessageTime = messages.isEmpty() ? 0 :
+                                        Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[0]) * 3600 +
+                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[1]) * 60 +
+                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[2]);
+
+                                if (lastMessageTime < messageTime) {
                                     messages.add(message);
-                                } else {
-                                    String[] parts = message.getTime().split(":");
-                                    long messageTime = Integer.parseInt(parts[0]) * 3600 + Integer.parseInt(parts[1]) * 60 + Integer.parseInt(parts[2]);
-
-                                    long lastMessageTime = messages.isEmpty() ? 0 :
-                                            Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[0]) * 3600 +
-                                                    Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[1]) * 60 +
-                                                    Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[2]);
-
-                                    if (lastMessageTime < messageTime) {
-                                        messages.add(message);
-                                    }
                                 }
                             }
                         }
 
+                        filteredMessages.addAll(messages);
                         messageAdapter.notifyDataSetChanged();
                     }
 
@@ -112,7 +182,6 @@ public class MessageFragment extends Fragment {
                     }
                 });
     }
-
 
     private void setupSwipeToDelete() {
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -160,5 +229,4 @@ public class MessageFragment extends Fragment {
 
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
     }
-
 }
