@@ -28,8 +28,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
@@ -76,42 +74,45 @@ public class MessageFragment extends Fragment {
     }
 
     private void fetchMessagesFromFirebase() {
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                messages.clear();
-                HashMap<String, Message> latestMessagesMap = new HashMap<>();
+        databaseReference.orderByChild("time")
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        messages.clear();
 
+                        for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                            Message message = messageSnapshot.getValue(Message.class);
 
-                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                    Message message = messageSnapshot.getValue(Message.class);
+                            if (message != null && message.getTime() != null) {
+                                if (!message.getSender().equals("Tôi")) {
+                                    messages.add(message);
+                                } else {
+                                    String[] parts = message.getTime().split(":");
+                                    long messageTime = Integer.parseInt(parts[0]) * 3600 + Integer.parseInt(parts[1]) * 60 + Integer.parseInt(parts[2]);
 
-                    if (message != null) {
-                        if (!latestMessagesMap.containsKey(message.getId()) ||
-                                (message.getTime() != null && latestMessagesMap.get(message.getId()).getTime() != null &&
-                                        message.getTime().compareTo(latestMessagesMap.get(message.getId()).getTime()) > 0) || !message.getSender().equals("Tôi")) {
-                            latestMessagesMap.put(message.getId(), message);
+                                    long lastMessageTime = messages.isEmpty() ? 0 :
+                                            Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[0]) * 3600 +
+                                                    Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[1]) * 60 +
+                                                    Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[2]);
+
+                                    if (lastMessageTime < messageTime) {
+                                        messages.add(message);
+                                    }
+                                }
+                            }
                         }
+
+                        messageAdapter.notifyDataSetChanged();
                     }
-                }
 
-                messages.addAll(latestMessagesMap.values());
-
-                Collections.sort(messages, (m1, m2) -> {
-                    if (m1.getTime() == null || m2.getTime() == null) return 0;
-                    return m2.getTime().compareTo(m1.getTime());
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("Firebase", "Lỗi khi tải dữ liệu", error.toException());
+                        Toast.makeText(getContext(), "Lỗi khi tải tin nhắn!", Toast.LENGTH_SHORT).show();
+                    }
                 });
-
-                messageAdapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Log.e("Firebase", "Lỗi khi tải dữ liệu", error.toException());
-                Toast.makeText(getContext(), "Lỗi khi tải tin nhắn!", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
+
 
     private void setupSwipeToDelete() {
         ItemTouchHelper.SimpleCallback itemTouchHelperCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
