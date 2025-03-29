@@ -37,7 +37,7 @@ import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MessageFragment extends Fragment {
@@ -48,6 +48,7 @@ public class MessageFragment extends Fragment {
     private FirebaseAuth firebaseAuth;
     private EditText searchEditText;
     private ImageView clearSearchIcon;
+
 
     private List<Message> messages;
     private List<Message> filteredMessages;
@@ -89,13 +90,21 @@ public class MessageFragment extends Fragment {
     private void setupSearchFunctionality() {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
+
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                messages.clear();
+                HashMap<String, Message> latestMessagesMap = new HashMap<>();
+
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
+
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
 
+                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
+                    Message message = messageSnapshot.getValue(Message.class);
             @Override
             public void afterTextChanged(Editable s) {
                 filterMessages(s.toString());

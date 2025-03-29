@@ -46,13 +46,14 @@ public class GoogleSignInManager {
                 SharedPreferencesHelper.saveGoogleUid(context, account.getId());
                 callback.onSuccess(account);
             } else {
-                callback.onFailure("Account is null");
+                callback.onFailure("Vui lòng thử lại.");
             }
         } catch (ApiException e) {
-            Log.e(TAG, "Sign-in failed: " + e.getStatusCode());
-            callback.onFailure("Sign-in failed: " + e.getMessage());
+            Log.e(TAG, "Lỗi đăng nhập: " + e.getStatusCode());
+            callback.onFailure("Đăng nhập thất bại: " + e.getMessage());
         }
     }
+
 
     public void signOut(SignOutCallback callback) {
         googleSignInClient.signOut().addOnCompleteListener(task -> callback.onSuccess());

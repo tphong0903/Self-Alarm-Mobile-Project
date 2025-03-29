@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -39,6 +41,9 @@ public class MainActivity extends AppCompatActivity {
     private Bundle savedInstanceState;
 
 
+    MenuItem loginItem;
+    MenuItem logoutItem;
+
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
@@ -66,13 +71,19 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
 
         this.savedInstanceState = savedInstanceState;
-
         googleSignInManager = new GoogleSignInManager(this);
         account = googleSignInManager.getLastSignedInAccount(this);
-        checkExistingSignIn();
-
+        if (account != null) {
+            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
+            googleCalendarManager = new GoogleCalendarManager(this);
+        }
+        updateUI(savedInstanceState);
 
     }
+
+
+    private void signIn() {
+        googleSignInManager.signIn(this);
 
     @Override
     protected void onDestroy() {
@@ -80,15 +91,7 @@ public class MainActivity extends AppCompatActivity {
         stopService(new Intent(this, MusicService.class));
     }
 
-    private void checkExistingSignIn() {
-        if (account == null) {
-            googleSignInManager.signIn(this);
-        } else {
-            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
-            googleCalendarManager = new GoogleCalendarManager(this);
-            updateUI(savedInstanceState);
 
-        }
     }
 
     @Override
@@ -99,12 +102,14 @@ public class MainActivity extends AppCompatActivity {
             googleSignInManager.handleSignInResult(data, new GoogleSignInManager.SignInCallback() {
                 @Override
                 public void onSuccess(GoogleSignInAccount account) {
+                    MainActivity.account = account;
+                    googleCalendarManager = new GoogleCalendarManager(MainActivity.this);
                     updateUI(savedInstanceState);
                 }
 
                 @Override
                 public void onFailure(String error) {
-                    Toast.makeText(MainActivity.this, "Login failed: " + error, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Login failed: ", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -113,8 +118,18 @@ public class MainActivity extends AppCompatActivity {
     private void signOut() {
         googleSignInManager.signOut(() -> {
             Toast.makeText(MainActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
-
+            account = null;
+            SharedPreferencesHelper.clearGoogleUid(MainActivity.this);
+            updateMenuVisibility();
+            updateUI(savedInstanceState);
         });
+    }
+
+    private void updateMenuVisibility() {
+        if (loginItem != null && logoutItem != null) {
+            loginItem.setVisible(account == null);
+            logoutItem.setVisible(account != null);
+        }
     }
 
     private void replaceFragment(Fragment fragment) {
@@ -149,6 +164,8 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
                 signOut();
+            } else if (id == R.id.nav_login) {
+                signIn();
             } else if (id == R.id.nav_blacklist) {
                 Intent intent = new Intent(MainActivity.this, BlacklistActivity.class);
                 startActivity(intent);
@@ -157,6 +174,17 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+        Menu menu = navigationView.getMenu();
+        loginItem = menu.findItem(R.id.nav_login);
+        logoutItem = menu.findItem(R.id.nav_logout);
+        if (account == null) {
+            loginItem.setVisible(true);
+            logoutItem.setVisible(false);
+        } else {
+            loginItem.setVisible(false);
+            logoutItem.setVisible(true);
+        }
+
 
         if (savedInstanceState == null) {
             replaceFragment(new HomeFragment());
@@ -176,7 +204,6 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new MessageFragment());
 
             }
-
             return true;
         });
 
