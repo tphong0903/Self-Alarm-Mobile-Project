@@ -41,7 +41,7 @@ public class SmsReceiver extends BroadcastReceiver {
                         Log.d(TAG, "Tin nhắn mới từ: " + sender + ", Nội dung: " + messageBody);
                         Toast.makeText(context, "Tin nhắn từ " + sender + ": " + messageBody, Toast.LENGTH_LONG).show();
 
-                        Message newMessage = new Message(sender, sender, "Tôi", messageBody, false, time);
+                        MessageModel newMessage = new MessageModel(sender, sender, "Tôi", messageBody, false, time);
 
                         saveMessageToFirebase(newMessage, context);
 
@@ -56,7 +56,7 @@ public class SmsReceiver extends BroadcastReceiver {
         }
     }
 
-    private void saveMessageToFirebase(Message message, Context context) {
+    private void saveMessageToFirebase(MessageModel message, Context context) {
         String googleUid = SharedPreferencesHelper.getGoogleUid(context);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");

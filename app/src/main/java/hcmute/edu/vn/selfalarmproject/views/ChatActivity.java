@@ -31,7 +31,7 @@ import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ChatAdapter;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class ChatActivity extends AppCompatActivity {
@@ -39,7 +39,7 @@ public class ChatActivity extends AppCompatActivity {
     private EditText etMessage;
     private Button btnSend;
     private ChatAdapter chatAdapter;
-    private List<Message> messageList = new ArrayList<>();
+    private List<MessageModel> messageList = new ArrayList<>();
     private DatabaseReference messagesRef;
     private String selectedMessageId;
     private FirebaseAuth firebaseAuth;
@@ -79,7 +79,7 @@ public class ChatActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 messageList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
-                    Message message = data.getValue(Message.class);
+                    MessageModel message = data.getValue(MessageModel.class);
                     if (message != null) {
                         boolean isMessageFromSelectedUser = message.getSender().equals(selectedMessageId) && message.getReceiver().equals("Tôi");
                         boolean isMessageFromMeToSelectedUser = message.getSender().equals("Tôi") && message.getReceiver().equals(selectedMessageId);
@@ -104,7 +104,7 @@ public class ChatActivity extends AppCompatActivity {
             if (!messageText.isEmpty()) {
                 String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
                 sendSMS(messageText, selectedMessageId);
-                Message message = new Message(selectedMessageId, "Tôi", selectedMessageId, messageText, true, time);
+                MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageText, true, time);
                 messagesRef.push().setValue(message)
                         .addOnSuccessListener(aVoid -> Log.d("Firebase", "Gửi tin nhắn thành công!"))
                         .addOnFailureListener(e -> Log.e("Firebase", "Lỗi khi gửi tin nhắn", e));

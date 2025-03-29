@@ -11,9 +11,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.EventDateTime;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -21,50 +18,35 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.models.TaskModel;
 
-public class EventAdapter extends ArrayAdapter<Event> {
+public class EventAdapter extends ArrayAdapter<TaskModel> {
 
     private SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
 
-    public EventAdapter(Context context, ArrayList<Event> eventList) {
+    public EventAdapter(Context context, ArrayList<TaskModel> eventList) {
         super(context, R.layout.list_event_item, eventList);
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
     }
 
 
     @NonNull
     @Override
     public View getView(int position, @Nullable View view, @NonNull ViewGroup parent) {
-        Event listData = getItem(position);
+        TaskModel listData = getItem(position);
         if (view == null) {
             view = LayoutInflater.from(getContext()).inflate(R.layout.list_event_item, parent, false);
         }
         TextView listName = view.findViewById(R.id.listName);
         TextView listTime = view.findViewById(R.id.listTime);
-        listName.setText(listData.getSummary());
-        EventDateTime eventDateTime = listData.getStart();
-        if (eventDateTime != null) {
-            String formattedDate = formatEventDate(eventDateTime);
-            listTime.setText(formattedDate);
-            Log.d("EventAdapter", "Event date: " + formattedDate);
-        } else {
-            listTime.setText("N/A");
-            Log.d("EventAdapter", "Event date is null");
-        }
-        return view;
-    }
+        listName.setText(listData.getTitle());
+        Date eventDateTime = new Date(listData.getStartDateTime());
+        String formattedDate = sdf.format(eventDateTime);
 
-    private String formatEventDate(EventDateTime eventDateTime) {
-        try {
-            if (eventDateTime.getDate() != null) {
-                return sdf.format(new Date(eventDateTime.getDate().getValue()));
-            } else if (eventDateTime.getDateTime() != null) {
-                return sdf.format(new Date(eventDateTime.getDateTime().getValue()));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "N/A";
+        listTime.setText(formattedDate);
+        Log.d("EventAdapter", "Event date: " + formattedDate);
+
+        return view;
     }
 
 }

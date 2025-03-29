@@ -34,7 +34,7 @@ import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.MessageAdapter;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MessageFragment extends Fragment {
@@ -44,7 +44,7 @@ public class MessageFragment extends Fragment {
     private DatabaseReference databaseReference;
     private FirebaseAuth firebaseAuth;
 
-    private List<Message> messages;
+    private List<MessageModel> messages;
 
     public MessageFragment() {
         super(R.layout.fragment_message);
@@ -80,11 +80,11 @@ public class MessageFragment extends Fragment {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 messages.clear();
-                HashMap<String, Message> latestMessagesMap = new HashMap<>();
+                HashMap<String, MessageModel> latestMessagesMap = new HashMap<>();
 
 
                 for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                    Message message = messageSnapshot.getValue(Message.class);
+                    MessageModel message = messageSnapshot.getValue(MessageModel.class);
 
                     if (message != null) {
                         if (!latestMessagesMap.containsKey(message.getId()) ||

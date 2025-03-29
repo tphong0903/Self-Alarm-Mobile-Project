@@ -37,7 +37,7 @@ import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.ContactAdapter;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class NewMessageActivity extends AppCompatActivity {
@@ -93,7 +93,7 @@ public class NewMessageActivity extends AppCompatActivity {
             String selectedMessageId = tvTitle.getText().toString().substring(0, 10).replaceAll("[^0-9]", "");
             String messageContent = etMessage.getText().toString().trim();
             String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
-            Message message = new Message(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
+            MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
             if (!messageContent.isEmpty()) {
                 Toast.makeText(this, "Tin nhắn: " + messageContent, Toast.LENGTH_SHORT).show();
                 sendSMS(messageContent, selectedMessageId);
