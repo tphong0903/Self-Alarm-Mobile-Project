@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -20,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.media3.common.util.UnstableApi;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -85,13 +87,13 @@ public class MainActivity extends AppCompatActivity {
     private void signIn() {
         googleSignInManager.signIn(this);
 
+    }
+
+    @OptIn(markerClass = UnstableApi.class)
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopService(new Intent(this, MusicService.class));
-    }
-
-
     }
 
     @Override

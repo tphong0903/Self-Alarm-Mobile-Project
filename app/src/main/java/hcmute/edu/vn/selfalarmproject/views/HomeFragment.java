@@ -34,7 +34,6 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.textfield.TextInputLayout;
 import com.google.api.services.calendar.model.Event;
 
 import java.text.ParseException;
@@ -113,6 +112,22 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
         });
     }
 
+    public void loadEvents() {
+        Calendar calendar = Calendar.getInstance();
+        int currentMonth = calendar.get(Calendar.MONTH) + 1;
+        int currentYear = calendar.get(Calendar.YEAR);
+        fetchCalendarEvents(currentMonth, currentYear);
+    }
+
+    private void setMonthView() {
+        setDateCalender.setText(monthYearFromDate(selectedDate));
+        ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
+        calendarAdapter = new CalendarAdapter(daysInMonth, this, listEvent, selectedDate.getMonthValue(), selectedDate.getYear());
+        calendarRecyclerView.setLayoutManager(new GridLayoutManager(getActivity().getApplicationContext(), 7));
+        calendarRecyclerView.setAdapter(calendarAdapter);
+
+    }
+
     private void fetchCalendarEvents(int month, int year) {
         listEvent.clear();
 
@@ -183,16 +198,6 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
     }
 
 
-    private void setMonthView() {
-        setDateCalender.setText(monthYearFromDate(selectedDate));
-        ArrayList<String> daysInMonth = daysInMonthArray(selectedDate);
-        calendarAdapter = new CalendarAdapter(daysInMonth, this, listEvent, selectedDate.getMonthValue(), selectedDate.getYear());
-        calendarRecyclerView.setLayoutManager(new GridLayoutManager(getActivity().getApplicationContext(), 7));
-        calendarRecyclerView.setAdapter(calendarAdapter);
-
-    }
-
-
     private ArrayList<String> daysInMonthArray(LocalDate date) {
         ArrayList<String> daysInMonthArray = new ArrayList<>();
         YearMonth yearMonth = YearMonth.from(date);
@@ -227,12 +232,6 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
         }
     }
 
-    public void loadEvents() {
-        Calendar calendar = Calendar.getInstance();
-        int currentMonth = calendar.get(Calendar.MONTH) + 1;
-        int currentYear = calendar.get(Calendar.YEAR);
-        fetchCalendarEvents(currentMonth, currentYear);
-    }
 
     private void showBottomDialog() {
 
@@ -243,15 +242,15 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
         AutoCompleteTextView dateTextView = dialog.findViewById(R.id.setDateCalender);
         EditText titleCalendar = dialog.findViewById(R.id.editTextTitleCalender);
         EditText descriptionCalendar = dialog.findViewById(R.id.editTextDescriptionCalender);
+
         Calendar calendar1 = Calendar.getInstance();
         int year1 = calendar1.get(Calendar.YEAR);
         int month1 = calendar1.get(Calendar.MONTH);
         int day1 = calendar1.get(Calendar.DAY_OF_MONTH);
         int hour1 = calendar1.get(Calendar.HOUR_OF_DAY);
-        int minute1 = calendar1.get(Calendar.MINUTE);
         String selectedDate1 = String.format(Locale.getDefault(), "%02d/%02d/%04d", day1, month1 + 1, year1);
+
         dateTextView.setText(selectedDate1);
-        TextInputLayout dateInputLayout = dialog.findViewById(R.id.dateCalender);
         dateTextView.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
             int year = calendar.get(Calendar.YEAR);
@@ -370,7 +369,7 @@ public class HomeFragment extends Fragment implements CalendarAdapter.OnItemList
         }
     }
 
-    public void scheduleTaskReminder(Context context, String title, String description, long dueTimeMillis) {
+    public static void scheduleTaskReminder(Context context, String title, String description, long dueTimeMillis) {
         long reminderTimeMillis = dueTimeMillis - (30 * 60 * 1000);
 
         Intent intent = new Intent(context, TaskReminderReceiver.class);

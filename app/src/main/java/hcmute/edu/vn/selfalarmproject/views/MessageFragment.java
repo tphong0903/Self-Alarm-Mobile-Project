@@ -50,8 +50,8 @@ public class MessageFragment extends Fragment {
     private ImageView clearSearchIcon;
 
 
-    private List<Message> messages;
-    private List<Message> filteredMessages;
+    private List<MessageModel> messages;
+    private List<MessageModel> filteredMessages;
 
     public MessageFragment() {
         super(R.layout.fragment_message);
@@ -90,24 +90,16 @@ public class MessageFragment extends Fragment {
     private void setupSearchFunctionality() {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
-
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                messages.clear();
-                HashMap<String, Message> latestMessagesMap = new HashMap<>();
-
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
 
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterMessages(s.toString());
             }
 
-                for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                    Message message = messageSnapshot.getValue(Message.class);
             @Override
             public void afterTextChanged(Editable s) {
-                filterMessages(s.toString());
                 clearSearchIcon.setVisibility(s.length() > 0 ? View.VISIBLE : View.GONE);
             }
         });
@@ -125,7 +117,7 @@ public class MessageFragment extends Fragment {
             filteredMessages.addAll(messages);
         } else {
             String lowerCaseQuery = query.toLowerCase();
-            for (Message message : messages) {
+            for (MessageModel message : messages) {
                 if (message.getContent().toLowerCase().contains(lowerCaseQuery) ||
                         message.getSender().toLowerCase().contains(lowerCaseQuery)) {
                     filteredMessages.add(message);
@@ -144,10 +136,10 @@ public class MessageFragment extends Fragment {
                         messages.clear();
                         filteredMessages.clear();
 
-                        Map<String, Message> messageMap = new HashMap<>();
+                        Map<String, MessageModel> messageMap = new HashMap<>();
 
                         for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
-                            Message message = messageSnapshot.getValue(Message.class);
+                            MessageModel message = messageSnapshot.getValue(MessageModel.class);
 
                             String messageId = message.getId();
                             if (messageId == null) {
@@ -160,7 +152,7 @@ public class MessageFragment extends Fragment {
                             }
                         }
 
-                        for (Message message : messageMap.values()) {
+                        for (MessageModel message : messageMap.values()) {
                             if (!message.getSender().equals("Tôi")) {
                                 messages.add(message);
                             } else {
