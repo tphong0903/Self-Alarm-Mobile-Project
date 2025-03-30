@@ -1,6 +1,7 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
 
+import static hcmute.edu.vn.selfalarmproject.views.HomeFragment.scheduleTaskReminder;
 import static hcmute.edu.vn.selfalarmproject.views.MainActivity.account;
 import static hcmute.edu.vn.selfalarmproject.views.MainActivity.googleCalendarManager;
 
@@ -68,6 +69,7 @@ public class EventDetailActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
+
         listView = findViewById(R.id.listview);
         eventAdapter = new EventAdapter(EventDetailActivity.this, listEvent);
         listView.setAdapter(eventAdapter);
@@ -175,6 +177,9 @@ public class EventDetailActivity extends AppCompatActivity {
             getContentResolver().delete(taskUri, null, null);
             listEvent.removeIf(v -> v.getId().equals(id));
             eventAdapter.notifyDataSetChanged();
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
         }
     }
 
@@ -213,8 +218,11 @@ public class EventDetailActivity extends AppCompatActivity {
             Uri taskUri = Uri.withAppendedPath(TaskContentProvider.CONTENT_URI, id);
             int rowsUpdated = getContentResolver().update(taskUri, values, null, null);
             if (rowsUpdated > 0) {
-//            scheduleTaskReminder(this, title, description, dateTime.getTime());
+                scheduleTaskReminder(this, title, description, startDateTime.getTime());
                 fetchCalendarEvents(monthText, yearText);
+            }
+            if (dialog.isShowing()) {
+                dialog.dismiss();
             }
         }
 
@@ -257,6 +265,7 @@ public class EventDetailActivity extends AppCompatActivity {
             startTimeTextView.setEnabled(true);
             endTimeTextView.setEnabled(true);
         });
+
         btnSaveTime.setOnClickListener(v -> {
             try {
                 editEvent(eventModel.getId(), dialog, titleCalendar.getText().toString(), descriptionCalendar.getText().toString(), startTimeTextView.getText().toString(), endTimeTextView.getText().toString(), dateTextView.getText().toString());
@@ -265,6 +274,7 @@ public class EventDetailActivity extends AppCompatActivity {
             }
             dialog.dismiss();
         });
+
         dateTextView.setText(formatEventDate(eventModel.getStartDateTime()));
         dateTextView.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
@@ -281,6 +291,7 @@ public class EventDetailActivity extends AppCompatActivity {
 
             datePickerDialog.show();
         });
+
         startTimeTextView.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -293,6 +304,7 @@ public class EventDetailActivity extends AppCompatActivity {
 
             timePickerDialog.show();
         });
+
         endTimeTextView.setOnClickListener(v -> {
             Calendar calendar = Calendar.getInstance();
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -305,6 +317,7 @@ public class EventDetailActivity extends AppCompatActivity {
 
             timePickerDialog.show();
         });
+
         startTimeTextView.setText(formatEventTime(eventModel.getStartDateTime()));
         endTimeTextView.setText(formatEventTime(eventModel.getEndDateTime()));
 
