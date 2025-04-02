@@ -35,6 +35,7 @@ public class MusicService extends Service {
         super.onCreate();
         Log.d("Service created", "Service created");
         exoPlayer = new SimpleExoPlayer.Builder(this).build();
+        createNotificationChannel();
     }
 
     @Override
@@ -105,7 +106,7 @@ public class MusicService extends Service {
     public void onDestroy() {
         super.onDestroy();
         Log.d("Service stopped", "Service stopped");
-        if(exoPlayer.isPlaying()){
+        if(exoPlayer != null && exoPlayer.isPlaying()){
             exoPlayer.stop();
             exoPlayer.release();
             exoPlayer = null;

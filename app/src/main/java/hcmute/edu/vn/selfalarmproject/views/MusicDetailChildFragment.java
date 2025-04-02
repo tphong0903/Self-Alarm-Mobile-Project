@@ -43,6 +43,7 @@ public class MusicDetailChildFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private long lastClickTime = 0;
     ShareSongViewModel viewModel;
 //    MediaPlayer mediaPlayer;
     SimpleExoPlayer exoPlayer;
@@ -102,12 +103,12 @@ public class MusicDetailChildFragment extends Fragment {
             exoPlayer = MusicChildMainFragment.exoPlayer;
             if(exoPlayer != null){
                 if(exoPlayer.isPlaying()){
-                    viewModel.setStatus(false);
+                    ShareSongViewModel.setStatus(false);
                     exoPlayer.pause();
                     play.setImageResource(R.drawable.baseline_play_arrow_24);
                 }
                 else {
-                    viewModel.setStatus(true);
+                    ShareSongViewModel.setStatus(true);
                     exoPlayer.play();
                     play.setImageResource(R.drawable.baseline_pause_24);
                 }
@@ -115,11 +116,19 @@ public class MusicDetailChildFragment extends Fragment {
         });
 
         prev.setOnClickListener(v -> {
+            if (System.currentTimeMillis() - lastClickTime < 1000) {
+                return;
+            }
+            lastClickTime = System.currentTimeMillis();
             ShareSongViewModel.setPosition(viewModel.getPosition().getValue() - 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });
 
         next.setOnClickListener(v -> {
+            if (System.currentTimeMillis() - lastClickTime < 1000) {
+                return;
+            }
+            lastClickTime = System.currentTimeMillis();
             ShareSongViewModel.setPosition(viewModel.getPosition().getValue() + 1);
             play.setImageResource(R.drawable.baseline_pause_24);
         });

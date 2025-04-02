@@ -1,7 +1,6 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -14,7 +13,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
@@ -144,12 +142,12 @@ public class MusicChildMainFragment extends Fragment {
         musicBarBtn.setOnClickListener(view -> {
             if(exoPlayer != null){
                 if(exoPlayer.isPlaying()){
-                    viewModel.setStatus(false);
+                    ShareSongViewModel.setStatus(false);
                     exoPlayer.pause();
                     musicBarBtn.setImageResource(R.drawable.baseline_play_arrow_24);
                 }
                 else {
-                    viewModel.setStatus(true);
+                    ShareSongViewModel.setStatus(true);
                     exoPlayer.play();
                     musicBarBtn.setImageResource(R.drawable.baseline_pause_24);
                 }
@@ -168,6 +166,7 @@ public class MusicChildMainFragment extends Fragment {
                 ShareSongViewModel.setPosition(musicList.size() - 1);
             }
             else{
+                loadingAlert.startAlert();
                 selected_song = musicList.get(position);
 
                 SongModel songModel = musicList.get(position);
@@ -182,7 +181,8 @@ public class MusicChildMainFragment extends Fragment {
                 requireContext().stopService(serviceIntent);
                 requireContext().startService(serviceIntent);
 
-                viewModel.setStatus(true);
+                ShareSongViewModel.setStatus(true);
+                loadingAlert.stopAlert();
             }
         }
     }
@@ -252,7 +252,9 @@ public class MusicChildMainFragment extends Fragment {
         MusicChildMainFragment fragment1 = (MusicChildMainFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG1");
         MusicDetailChildFragment fragment2 = (MusicDetailChildFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG2");
 
+        assert fragment1 != null;
         transaction.hide(fragment1);
+        assert fragment2 != null;
         transaction.show(fragment2);
         transaction.commit();
     }

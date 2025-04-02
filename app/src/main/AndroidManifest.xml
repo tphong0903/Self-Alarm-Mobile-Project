@@ -8,6 +8,10 @@
         android:required="false" />
 
 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -61,8 +65,8 @@
 
         <service
             android:name=".service.CallScreenerService"
-            android:permission="android.permission.BIND_SCREENING_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.BIND_SCREENING_SERVICE">
             <intent-filter>
                 <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
@@ -73,8 +77,8 @@
 
         <activity
             android:name=".views.EventDetailActivity"
-            android:parentActivityName=".views.MainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".views.MainActivity" />
         <activity android:name=".views.BlacklistActivity" />
 
         <meta-data
@@ -93,8 +97,8 @@
 
         <receiver
             android:name=".models.SmsReceiver"
-            android:permission="android.permission.BROADCAST_SMS"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
@@ -116,8 +120,9 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-        <service android:name=".service.MusicService"
-            android:foregroundServiceType="mediaPlayback"/>
+        <service
+            android:name=".service.MusicService"
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 
 </manifest>

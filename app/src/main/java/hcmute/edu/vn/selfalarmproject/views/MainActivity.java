@@ -1,8 +1,10 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
 import android.app.role.RoleManager;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -30,6 +32,7 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.receiver.HeadphoneReceiver;
 import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
@@ -39,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     NavigationView navigationView;
 
-
+    HeadphoneReceiver headphoneReceiver;
     private Bundle savedInstanceState;
 
 
@@ -81,6 +84,15 @@ public class MainActivity extends AppCompatActivity {
         }
         updateUI(savedInstanceState);
 
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_HEADSET_PLUG);
+        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
+        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+
+        headphoneReceiver = new HeadphoneReceiver();
+        registerReceiver(headphoneReceiver, filter);
+
+
     }
 
 
@@ -94,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopService(new Intent(this, MusicService.class));
+        unregisterReceiver(headphoneReceiver);
     }
 
     @Override

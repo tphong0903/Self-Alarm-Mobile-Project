@@ -15,13 +15,13 @@ public class ShareSongViewModel extends ViewModel {
     private static final MutableLiveData<Integer> songDuration = new MutableLiveData<>();
     private static final MutableLiveData<Integer> position = new MutableLiveData<>(-100);
     private final MutableLiveData<MediaPlayer> song = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> playStatus = new MutableLiveData<>();
+    private static final MutableLiveData<Boolean> playStatus = new MutableLiveData<>();
 
     public LiveData<Boolean> getPlayStatus() {
         return playStatus;
     }
 
-    public void setStatus(boolean status) {
+    public static void setStatus(boolean status) {
         playStatus.setValue(status);
     }
 
