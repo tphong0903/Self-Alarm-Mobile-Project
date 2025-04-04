@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.models;
+package hcmute.edu.vn.selfalarmproject.receivers;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import hcmute.edu.vn.selfalarmproject.models.Message;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class SmsReceiver extends BroadcastReceiver {

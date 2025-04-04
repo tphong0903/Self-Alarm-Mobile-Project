@@ -3,9 +3,13 @@ package hcmute.edu.vn.selfalarmproject.views;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,21 +30,26 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.receivers.SystemBroadcastReceiver;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     BottomNavigationView bottomNavigationView;
-
     NavigationView navigationView;
-
-
     private Bundle savedInstanceState;
-
 
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
+    private final ActivityResultLauncher<String> requestSmsPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    Toast.makeText(MainActivity.this, "Quyền gửi tin nhắn đã được cấp", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Quyền gửi tin nhắn bị từ chối", Toast.LENGTH_SHORT).show();
+                }
+            });
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -62,6 +71,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        checkChangeBatteryPermission();
+
         checkPermissions();
 
         this.savedInstanceState = savedInstanceState;
@@ -69,8 +80,6 @@ public class MainActivity extends AppCompatActivity {
         googleSignInManager = new GoogleSignInManager(this);
         account = googleSignInManager.getLastSignedInAccount(this);
         checkExistingSignIn();
-
-
     }
 
     private void checkExistingSignIn() {
@@ -80,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferencesHelper.saveGoogleUid(this, account.getId());
             googleCalendarManager = new GoogleCalendarManager(this);
             updateUI(savedInstanceState);
-
         }
     }
 
@@ -101,12 +109,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
         }
+
+        if (requestCode == 100) {
+            if (Settings.System.canWrite(this)) {
+                Log.d("MainActivity", "Permission granted to write settings.");
+            } else {
+                Log.d("MainActivity", "Permission denied to write settings.");
+            }
+        }
     }
 
     private void signOut() {
         googleSignInManager.signOut(() -> {
             Toast.makeText(MainActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
-
         });
     }
 
@@ -123,7 +138,6 @@ public class MainActivity extends AppCompatActivity {
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
         drawerLayout = findViewById(R.id.drawer_layout);
 
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar, R.string.open_nav, R.string.close_nav);
@@ -132,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(v -> {
-
             int id = v.getItemId();
 
             if (id == R.id.nav_home) {
@@ -167,12 +180,10 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new PhoneFragment());
             } else if (itemId == R.id.menu_message) {
                 replaceFragment(new MessageFragment());
-
             }
 
             return true;
         });
-
     }
 
     private void checkPermissions() {
@@ -190,6 +201,29 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         checkCallScreeningRole();
+        requestWriteSettingsPermission();
+        checkSmsPermission();
+
+    }
+
+    private void checkChangeBatteryPermission() {
+        SystemBroadcastReceiver systemBroadcastReceiver = new SystemBroadcastReceiver();
+        IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        Intent batteryStatus = this.registerReceiver(systemBroadcastReceiver, ifilter);
+
+        int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        float batteryPercentage = level / (float) scale * 100;
+        Log.d("DA", "Pin hiện tại: " + batteryPercentage + "%");
+
+    }
+
+    private void checkSmsPermission() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            requestSmsPermissionLauncher.launch(android.Manifest.permission.SEND_SMS);
+        } else {
+//            Toast.makeText(this, "Đã có quyền gửi tin nhắn", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void checkCallScreeningRole() {
@@ -205,5 +239,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean isWriteSettingsPermissionGranted() {
+        return Settings.System.canWrite(this);
+    }
 
+    private void requestWriteSettingsPermission() {
+        if (!isWriteSettingsPermissionGranted()) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+            intent.setData(Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, 100);
+        }
+    }
 }
