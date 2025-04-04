@@ -1,32 +1,13 @@
 {
   "project_info": {
-    "project_number": "824695472314",
-    "project_id": "musicapprepo",
-    "storage_bucket": "musicapprepo.firebasestorage.app"
+    "project_number": "834185538953",
+    "project_id": "week6-8ecb2",
+    "storage_bucket": "week6-8ecb2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:824695472314:android:a564c5ae5bca0982958283",
-        "android_client_info": {
-          "package_name": "com.example.testing"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBbTL_F-ZX5OyDL1wZ8f8ApcayM3z4-xgw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:824695472314:android:ecccf3f2894cba59958283",
+        "mobilesdk_app_id": "1:834185538953:android:7247972f859b88058f8558",
         "android_client_info": {
           "package_name": "hcmute.edu.vn.selfalarmproject"
         }
@@ -34,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBbTL_F-ZX5OyDL1wZ8f8ApcayM3z4-xgw"
+          "current_key": "AIzaSyDBvBRO5B7uYWhITP5Eiw-8sIkaj3p8EP0"
         }
       ],
       "services": {

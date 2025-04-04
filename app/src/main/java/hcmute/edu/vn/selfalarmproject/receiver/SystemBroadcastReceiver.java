@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.receivers;
+package hcmute.edu.vn.selfalarmproject.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

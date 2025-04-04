@@ -1,11 +1,13 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
+
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -74,6 +76,12 @@ public class MessageFragment extends Fragment {
         recyclerView.setAdapter(messageAdapter);
 
         String googleUid = SharedPreferencesHelper.getGoogleUid(getContext());
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(this.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
+            
+
+        }
         Log.d("MyApp", "Google UID: " + googleUid);
         databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 

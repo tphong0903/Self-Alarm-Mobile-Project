@@ -24,6 +24,9 @@
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <queries>
         <package android:name="com.android.sms" />
     </queries>
@@ -59,6 +62,9 @@
                 android:name="android.telecom.CALL_SCREENING_FILTER"
                 android:value="android.telecom.CallScreeningService.GENERAL_PURPOSE" />
         </service>
+        <service
+            android:name=".service.MusicService"
+            android:foregroundServiceType="mediaPlayback" />
 
         <activity
             android:name=".views.EventDetailActivity"
@@ -81,7 +87,7 @@
         </activity>
 
         <receiver
-            android:name=".models.SmsReceiver"
+            android:name=".receiver.SmsReceiver"
             android:permission="android.permission.BROADCAST_SMS"
             android:exported="true">
             <intent-filter>

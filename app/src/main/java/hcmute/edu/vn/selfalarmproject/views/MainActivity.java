@@ -7,10 +7,13 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -18,6 +21,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.media3.common.util.UnstableApi;
 
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -26,6 +30,7 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,10 +42,40 @@ public class MainActivity extends AppCompatActivity {
 
     private Bundle savedInstanceState;
 
+    MenuItem loginItem;
+    MenuItem logoutItem;
+
 
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
+    private final ActivityResultLauncher<String> requestSmsPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    Log.d("MainActivity", "Quyền gửi tin nhắn đã được cấp");
+                    Toast.makeText(MainActivity.this, "Quyền gửi tin nhắn đã được cấp", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d("MainActivity", "Quyền gửi tin nhắn bị từ chối");
+
+                    if (!shouldShowRequestPermissionRationale(android.Manifest.permission.SEND_SMS)) {
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Permission Required")
+                                .setMessage("SMS permission is required. Please enable it in app settings.")
+                                .setPositiveButton("Settings", (dialog, which) -> openAppSettings())
+                                .setNegativeButton("Cancel", (dialog, which) -> {
+                                })
+                                .create().show();
+                    }
+                }
+            });
+
+    private void openAppSettings() {
+        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        android.net.Uri uri = android.net.Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -63,25 +98,31 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkPermissions();
+        checkSmsPermission();
+
 
         this.savedInstanceState = savedInstanceState;
-
         googleSignInManager = new GoogleSignInManager(this);
         account = googleSignInManager.getLastSignedInAccount(this);
-        checkExistingSignIn();
+        if (account != null) {
+            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
+            googleCalendarManager = new GoogleCalendarManager(this);
+        }
+        updateUI(savedInstanceState);
 
 
     }
 
-    private void checkExistingSignIn() {
-        if (account == null) {
-            googleSignInManager.signIn(this);
-        } else {
-            SharedPreferencesHelper.saveGoogleUid(this, account.getId());
-            googleCalendarManager = new GoogleCalendarManager(this);
-            updateUI(savedInstanceState);
+    @OptIn(markerClass = UnstableApi.class)
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(new Intent(this, MusicService.class));
+    }
 
-        }
+    private void signIn() {
+        googleSignInManager.signIn(this);
+
     }
 
     @Override
@@ -92,12 +133,14 @@ public class MainActivity extends AppCompatActivity {
             googleSignInManager.handleSignInResult(data, new GoogleSignInManager.SignInCallback() {
                 @Override
                 public void onSuccess(GoogleSignInAccount account) {
+                    MainActivity.account = account;
+                    googleCalendarManager = new GoogleCalendarManager(MainActivity.this);
                     updateUI(savedInstanceState);
                 }
 
                 @Override
                 public void onFailure(String error) {
-                    Toast.makeText(MainActivity.this, "Login failed: " + error, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Login failed: ", Toast.LENGTH_SHORT).show();
                 }
             });
         }
@@ -106,8 +149,18 @@ public class MainActivity extends AppCompatActivity {
     private void signOut() {
         googleSignInManager.signOut(() -> {
             Toast.makeText(MainActivity.this, "Signed out", Toast.LENGTH_SHORT).show();
-
+            account = null;
+            SharedPreferencesHelper.clearGoogleUid(MainActivity.this);
+            updateMenuVisibility();
+            updateUI(savedInstanceState);
         });
+    }
+
+    private void updateMenuVisibility() {
+        if (loginItem != null && logoutItem != null) {
+            loginItem.setVisible(account == null);
+            logoutItem.setVisible(account != null);
+        }
     }
 
     private void replaceFragment(Fragment fragment) {
@@ -142,6 +195,8 @@ public class MainActivity extends AppCompatActivity {
             } else if (id == R.id.nav_logout) {
                 Toast.makeText(MainActivity.this, "Log out", Toast.LENGTH_SHORT).show();
                 signOut();
+            } else if (id == R.id.nav_login) {
+                signIn();
             } else if (id == R.id.nav_blacklist) {
                 Intent intent = new Intent(MainActivity.this, BlacklistActivity.class);
                 startActivity(intent);
@@ -150,6 +205,17 @@ public class MainActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+        Menu menu = navigationView.getMenu();
+        loginItem = menu.findItem(R.id.nav_login);
+        logoutItem = menu.findItem(R.id.nav_logout);
+        if (account == null) {
+            loginItem.setVisible(true);
+            logoutItem.setVisible(false);
+        } else {
+            loginItem.setVisible(false);
+            logoutItem.setVisible(true);
+        }
+
 
         if (savedInstanceState == null) {
             replaceFragment(new HomeFragment());
@@ -169,7 +235,6 @@ public class MainActivity extends AppCompatActivity {
                 replaceFragment(new MessageFragment());
 
             }
-
             return true;
         });
 
@@ -205,5 +270,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void checkSmsPermission() {
+        String[] permissions = {
+                android.Manifest.permission.SEND_SMS,
+                android.Manifest.permission.RECEIVE_SMS,
+                android.Manifest.permission.READ_SMS,
+                android.Manifest.permission.RECEIVE_MMS,
+        };
+
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                if (shouldShowRequestPermissionRationale(permission)) {
+                    new androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("SMS Permission Required")
+                            .setMessage("This app needs SMS permissions to function properly")
+                            .setPositiveButton("OK", (dialog, which) ->
+                                    requestSmsPermissionLauncher.launch(permission))
+                            .setNegativeButton("Cancel", (dialog, which) ->
+                                    Toast.makeText(this, "SMS features won't work without permission", Toast.LENGTH_LONG).show())
+                            .create().show();
+                    return;
+                } else {
+                    requestSmsPermissionLauncher.launch(permission);
+                    return;
+                }
+            }
+        }
+    }
 
 }

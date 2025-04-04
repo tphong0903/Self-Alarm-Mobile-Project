@@ -1,9 +1,10 @@
-package hcmute.edu.vn.selfalarmproject.receivers;
+package hcmute.edu.vn.selfalarmproject.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -16,7 +17,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
 public class SmsReceiver extends BroadcastReceiver {
@@ -34,6 +35,9 @@ public class SmsReceiver extends BroadcastReceiver {
                         SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
 
                         String sender = smsMessage.getDisplayOriginatingAddress();
+                        if (sender != null && sender.startsWith("+84")) {
+                            sender = sender.replace("+84", "0");
+                        }
                         String messageBody = smsMessage.getMessageBody();
                         long timestamp = smsMessage.getTimestampMillis();
 
@@ -59,7 +63,12 @@ public class SmsReceiver extends BroadcastReceiver {
 
     private void saveMessageToFirebase(MessageModel message, Context context) {
         String googleUid = SharedPreferencesHelper.getGoogleUid(context);
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
 
+        }
+        Log.d(TAG, "Google UID: " + googleUid);
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
         DatabaseReference messagesRef = database.getReference(googleUid);
 
