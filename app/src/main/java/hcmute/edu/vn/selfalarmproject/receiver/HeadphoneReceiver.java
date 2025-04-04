@@ -1,13 +1,20 @@
 package hcmute.edu.vn.selfalarmproject.receiver;
 
+import android.Manifest;
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.SimpleExoPlayer;
 
 import hcmute.edu.vn.selfalarmproject.R;
@@ -18,8 +25,9 @@ import hcmute.edu.vn.selfalarmproject.views.MusicChildMainFragment;
 @UnstableApi
 public class HeadphoneReceiver extends BroadcastReceiver {
     private static final String TAG = "HeadphoneReceiver";
-    SimpleExoPlayer exoPlayer;
+    ExoPlayer exoPlayer;
 
+    @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();

@@ -15,7 +15,7 @@ import androidx.media3.common.C;
 import androidx.media3.common.MediaItem;
 import androidx.media3.common.Player;
 import androidx.media3.common.util.UnstableApi;
-import androidx.media3.exoplayer.SimpleExoPlayer;
+import androidx.media3.exoplayer.ExoPlayer;
 
 
 import hcmute.edu.vn.selfalarmproject.R;
@@ -25,7 +25,7 @@ import hcmute.edu.vn.selfalarmproject.views.MusicChildMainFragment;
 
 @UnstableApi
 public class MusicService extends Service {
-    public static SimpleExoPlayer exoPlayer;
+    public static ExoPlayer exoPlayer;
     private static final String CHANNEL_ID = "MusicServiceChannel";
     public static String title, url, artist, imageURL;
     public static int pos;
@@ -34,29 +34,29 @@ public class MusicService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.d("Service created", "Service created");
-        exoPlayer = new SimpleExoPlayer.Builder(this).build();
+        exoPlayer = new ExoPlayer.Builder(this).build();
         createNotificationChannel();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Service started", "Service started");
-        if(intent.getStringExtra("title") != null){
-            title = intent.getStringExtra("title");
-        }
+//        if(intent.getStringExtra("title") != null){
+//            title = intent.getStringExtra("title");
+//        }
         if(intent.getStringExtra("songURL") != null){
             url = intent.getStringExtra("songURL");
         }
-        if(intent.getStringExtra("artist") != null){
-            artist = intent.getStringExtra("artist");
-        }
-        if(intent.getStringExtra("imageURL") != null){
-            imageURL = intent.getStringExtra("imageURL");
-        }
-
-        if(intent.getIntExtra("position", -1) != -1){
-            pos = intent.getIntExtra("position", -1);
-        }
+//        if(intent.getStringExtra("artist") != null){
+//            artist = intent.getStringExtra("artist");
+//        }
+//        if(intent.getStringExtra("imageURL") != null){
+//            imageURL = intent.getStringExtra("imageURL");
+//        }
+//
+//        if(intent.getIntExtra("position", -1) != -1){
+//            pos = intent.getIntExtra("position", -1);
+//        }
 
         MediaItem mediaItem = MediaItem.fromUri(Uri.parse(url));
         exoPlayer.setMediaItem(mediaItem);
@@ -75,7 +75,6 @@ public class MusicService extends Service {
             }
         });
 
-        startForeground(1, getNotification());
         return START_STICKY;
     }
 

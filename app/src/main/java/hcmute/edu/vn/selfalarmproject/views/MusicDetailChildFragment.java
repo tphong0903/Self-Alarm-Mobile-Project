@@ -19,6 +19,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.SimpleExoPlayer;
 
 import com.bumptech.glide.Glide;
@@ -45,8 +46,7 @@ public class MusicDetailChildFragment extends Fragment {
     private String mParam2;
     private long lastClickTime = 0;
     ShareSongViewModel viewModel;
-//    MediaPlayer mediaPlayer;
-    SimpleExoPlayer exoPlayer;
+    ExoPlayer exoPlayer;
     ImageView songImg;
     ProgressBar progressBar;
     TextView songPassTime, songRemainTime, titleTextView, artistTextView;
@@ -142,7 +142,7 @@ public class MusicDetailChildFragment extends Fragment {
             }
         });
 
-        viewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
+        ShareSongViewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
             if(status){
                 play.setImageResource(R.drawable.baseline_pause_24);
             }
@@ -176,13 +176,6 @@ public class MusicDetailChildFragment extends Fragment {
                 progressBar.setMax(integer);
             }
         });
-
-//        viewModel.getSongMeta().observe(getViewLifecycleOwner(), new Observer<MediaPlayer>() {
-//            @Override
-//            public void onChanged(MediaPlayer mediaPlayer) {
-//                play.setImageResource(R.drawable.baseline_pause_24);
-//            }
-//        });
 
         return view;
     }

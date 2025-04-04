@@ -115,6 +115,9 @@
                 <data android:scheme="smsto" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".receiver.MusicNotificationReceiver"
+            android:enabled="true"
+            />
 
 
         <meta-data

@@ -1,5 +1,7 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.role.RoleManager;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
@@ -16,9 +18,11 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.OptIn;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -36,6 +40,7 @@ import hcmute.edu.vn.selfalarmproject.receiver.HeadphoneReceiver;
 import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
+@UnstableApi
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     BottomNavigationView bottomNavigationView;
@@ -69,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,9 +95,16 @@ public class MainActivity extends AppCompatActivity {
         filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
         filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    (Activity) this,
+                    new String[]{android.Manifest.permission.BLUETOOTH_CONNECT},
+                    101
+            );
+        }
+
         headphoneReceiver = new HeadphoneReceiver();
         registerReceiver(headphoneReceiver, filter);
-
 
     }
 

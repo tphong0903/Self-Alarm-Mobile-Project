@@ -1,8 +1,15 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,16 +20,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.SimpleExoPlayer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -34,6 +46,7 @@ import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.adapters.SongRecyclerAdapter;
 import hcmute.edu.vn.selfalarmproject.models.SongModel;
 import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.receiver.MusicNotificationReceiver;
 import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 
@@ -41,7 +54,7 @@ import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 @UnstableApi
 public class MusicChildMainFragment extends Fragment {
 //    public static MediaPlayer mediaPlayer;
-    public static SimpleExoPlayer exoPlayer;
+    public static ExoPlayer exoPlayer;
     static ShareSongViewModel viewModel;
     static Handler handler;
     static TextView temp;
@@ -56,6 +69,7 @@ public class MusicChildMainFragment extends Fragment {
     private long lastClickTime;
     Intent serviceIntent;
     ImageView image;
+    MediaSessionCompat mediaSessionCompat;
     private static final Runnable updateTimeRunnable = new Runnable() {
         @Override
         public void run() {
@@ -126,16 +140,18 @@ public class MusicChildMainFragment extends Fragment {
         });
 
 
-        musicBar.setOnClickListener(view -> {
-            switchFragment();
-        });
 
-        viewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
+
+        musicBar.setOnClickListener(view -> switchFragment());
+
+        ShareSongViewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
             if(status){
                 musicBarBtn.setImageResource(R.drawable.baseline_pause_24);
+                showNotification(R.drawable.baseline_pause_24, ShareSongViewModel.getPosition().getValue());
             }
             else{
                 musicBarBtn.setImageResource(R.drawable.baseline_play_arrow_24);
+                showNotification(R.drawable.baseline_play_arrow_24, ShareSongViewModel.getPosition().getValue());
             }
         });
 
@@ -180,11 +196,62 @@ public class MusicChildMainFragment extends Fragment {
 
                 requireContext().stopService(serviceIntent);
                 requireContext().startService(serviceIntent);
+                showNotification(R.drawable.baseline_pause_24, position);
 
                 ShareSongViewModel.setStatus(true);
                 loadingAlert.stopAlert();
             }
         }
+    }
+
+    public void showNotification(int playBtn, int position){
+        if(!musicList.isEmpty()){
+            SongModel songModel = musicList.get(position);
+
+            Intent intent = new Intent(requireContext(), MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
+            Intent prevIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_PREV");
+            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
+            Intent playIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_PLAY");
+            playIntent.putExtra("songURL", songModel.getSongURL());
+            playIntent.putExtra("position", position);
+            PendingIntent playPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
+            Intent nextIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_NEXT");
+            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
+
+            Glide.with(requireContext())
+                    .asBitmap()
+                    .load(musicList.get(position).getImageURL())
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            Notification notification = new NotificationCompat.Builder(requireContext(), "MusicServiceChannel")
+                                    .setSmallIcon(R.drawable.baseline_queue_music_24)
+                                    .setLargeIcon(resource)
+                                    .setContentTitle(musicList.get(position).getTitle())
+                                    .setContentText(musicList.get(position).getAuthor())
+                                    .addAction(R.drawable.baseline_skip_previous_24, "Previous", prevPendingIntent)
+                                    .addAction(playBtn, "Play", playPendingIntent)
+                                    .addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent)
+                                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                                            .setMediaSession(mediaSessionCompat.getSessionToken()))
+                                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                                    .setContentIntent(pendingIntent)
+                                    .setOngoing(true)
+                                    .setOnlyAlertOnce(true)
+                                    .build();
+
+                            NotificationManager notificationManager = (NotificationManager) requireActivity().getSystemService(requireContext().NOTIFICATION_SERVICE);
+                            notificationManager.notify(1, notification);
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                        }
+                    });
+        }
+
     }
 
     public void loadingMusicBar(SongModel selected_song, String title, String imageURL, String artist){
@@ -209,12 +276,10 @@ public class MusicChildMainFragment extends Fragment {
     public void onDestroy() {
         Log.d("Fragment Destroy", "Fragment Destroy");
         super.onDestroy();
-        viewModel.getPosition().removeObservers(getViewLifecycleOwner());
     }
 
     private void componentInit(View v){
         viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
-//        ShareSongViewModel.setPosition(-100);
         handler = new Handler();
         musicBar = v.findViewById(R.id.musicBar);
         temp = v.findViewById(R.id.timeDemo);
@@ -229,6 +294,8 @@ public class MusicChildMainFragment extends Fragment {
         musicBarTitle = (TextView) v.findViewById(R.id.musicBar_title);
         musicBarArtist = (TextView) v.findViewById(R.id.musicBar_artist);
         image = (ImageView) v.findViewById(R.id.musicBar_img);
+
+        mediaSessionCompat = new MediaSessionCompat(requireContext(), "PlayerAudio");
     }
 
     public static void startUpdatingTime() {
