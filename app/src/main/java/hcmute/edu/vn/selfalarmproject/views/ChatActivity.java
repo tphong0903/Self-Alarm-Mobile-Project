@@ -4,6 +4,7 @@ import static android.content.ContentValues.TAG;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.MenuItem;
@@ -71,7 +72,11 @@ public class ChatActivity extends AppCompatActivity {
             Log.d(TAG, "Received message id: " + selectedMessageId);
         }
         String googleUid = SharedPreferencesHelper.getGoogleUid(this);
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
 
+        }
         messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 
         messagesRef.addValueEventListener(new ValueEventListener() {
@@ -102,7 +107,7 @@ public class ChatActivity extends AppCompatActivity {
         btnSend.setOnClickListener(v -> {
             String messageText = etMessage.getText().toString().trim();
             if (!messageText.isEmpty()) {
-                String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
                 sendSMS(messageText, selectedMessageId);
                 MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageText, true, time);
                 messagesRef.push().setValue(message)

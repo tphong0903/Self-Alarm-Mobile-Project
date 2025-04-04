@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -86,6 +87,11 @@ public class NewMessageActivity extends AppCompatActivity {
 
         checkPermissions();
         String googleUid = SharedPreferencesHelper.getGoogleUid(this);
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
+
+        }
 
         DatabaseReference messagesRef = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 

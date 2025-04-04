@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -65,20 +66,25 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         String sender = message.getId();
         String contactName = getContactName(context, sender);
         googleUid = SharedPreferencesHelper.getGoogleUid(context);
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
+
+        }
         if (contactName != null) {
             holder.tvSender.setText(contactName);
         } else {
             holder.tvSender.setText(sender);
         }
         holder.tvMessageContent.setText(message.getContent());
-        holder.tvTimestamp.setText(message.getTime());
+        holder.tvTimestamp.setText(message.getTime().substring(11, 16));
 
         if (message.isRead()) {
             holder.tvSender.setTextColor(Color.GRAY);
             holder.tvMessageContent.setTextColor(Color.GRAY);
         } else {
-            holder.tvSender.setTextColor(Color.BLACK);
-            holder.tvMessageContent.setTextColor(Color.BLACK);
+            holder.tvSender.setTextColor(Color.BLUE);
+            holder.tvMessageContent.setTextColor(Color.BLUE);
         }
 
 
