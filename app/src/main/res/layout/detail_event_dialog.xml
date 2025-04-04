@@ -152,7 +152,6 @@
     </LinearLayout>
 
     <LinearLayout
-        android:visibility="gone"
         android:id="@+id/layoutTime"
         android:padding="10dp"
         android:layout_marginLeft="20dp"

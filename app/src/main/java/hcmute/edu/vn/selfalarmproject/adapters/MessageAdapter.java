@@ -28,12 +28,12 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 import hcmute.edu.vn.selfalarmproject.views.ChatActivity;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
-    private List<Message> messageList;
+    private List<MessageModel> messageList;
     private Context context;
     private String googleUid;
 
@@ -45,7 +45,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     private OnMessageClickListener listener;
 
 
-    public MessageAdapter(List<Message> messageList, Context context) {
+    public MessageAdapter(List<MessageModel> messageList, Context context) {
         this.messageList = messageList;
         this.context = context;
     }
@@ -59,7 +59,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
     @Override
     public void onBindViewHolder(@NonNull MessageViewHolder holder, int position) {
-        Message message = messageList.get(position);
+        MessageModel message = messageList.get(position);
 
         Log.d("MessageAdapter", "onBindViewHolder: " + message.getId());
         String sender = message.getId();
@@ -123,7 +123,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
 
     public void removeMessage(int position) {
-        Message message = messageList.get(position);
+        MessageModel message = messageList.get(position);
         deleteMessagesById(message.getId());
 
         messageList.remove(position);

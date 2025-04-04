@@ -16,13 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.models.Message;
+import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 
 public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder> {
-    private List<Message> messageList;
+    private List<MessageModel> messageList;
     private Context context;
 
-    public ChatAdapter(List<Message> messageList, Context context) {
+    public ChatAdapter(List<MessageModel> messageList, Context context) {
         this.messageList = messageList;
         this.context = context;
     }
@@ -41,7 +41,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull ChatAdapter.ChatViewHolder holder, int position) {
-        Message message = messageList.get(position);
+        MessageModel message = messageList.get(position);
         holder.tvSender.setText(message.getSender());
         String sender = message.getSender();
         String contactName = getContactName(context, sender);
@@ -61,6 +61,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
     public int getItemCount() {
         return messageList.size();
     }
+
     public static class ChatViewHolder extends RecyclerView.ViewHolder {
         TextView tvSender, tvMessage, tvTime;
 
@@ -71,11 +72,13 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             tvTime = itemView.findViewById(R.id.tvTimestamp);
         }
     }
+
     @Override
     public int getItemViewType(int position) {
-        Message message = messageList.get(position);
+        MessageModel message = messageList.get(position);
         return message.getSender().equals("Tôi") ? 1 : 0;
     }
+
     private String getContactName(Context context, String phoneNumber) {
         ContentResolver cr = context.getContentResolver();
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;

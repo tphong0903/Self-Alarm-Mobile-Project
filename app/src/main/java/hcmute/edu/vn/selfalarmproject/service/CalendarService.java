@@ -52,8 +52,6 @@ public class CalendarService {
                 calendar.set(Calendar.SECOND, 59);
                 DateTime lastDayOfMonth = new DateTime(calendar.getTime());
 
-                Log.e("EventCal", "first: " + firstDayOfMonth);
-                Log.e("EventCal", "last: " + lastDayOfMonth);
 
                 Events events = service.events().list("primary")
                         .setTimeMin(firstDayOfMonth)
@@ -61,7 +59,7 @@ public class CalendarService {
                         .setOrderBy("startTime")
                         .setSingleEvents(true)
                         .execute();
-                Log.e("EventCal", String.valueOf(events.size()));
+
                 return events.getItems();
             } catch (Exception e) {
                 Log.e("Error", "Lỗi khi lấy sự kiện", e);
@@ -91,7 +89,6 @@ public class CalendarService {
     public void editEvent(String id, String title, String description, String startTime, String endTime, String date) {
         executor.execute(() -> {
             try {
-
                 Event event = service.events().get("primary", id).execute();
                 event.setSummary(title);
                 event.setDescription(description);

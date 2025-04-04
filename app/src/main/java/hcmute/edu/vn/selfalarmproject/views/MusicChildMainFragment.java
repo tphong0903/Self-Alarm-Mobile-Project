@@ -1,56 +1,88 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
-import android.net.Uri;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.media.session.MediaSessionCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.SimpleExoPlayer;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.CustomTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
+import hcmute.edu.vn.selfalarmproject.adapters.SongRecyclerAdapter;
 import hcmute.edu.vn.selfalarmproject.models.SongModel;
 import hcmute.edu.vn.selfalarmproject.adapters.ShareSongViewModel;
-import hcmute.edu.vn.selfalarmproject.adapters.ListViewAdapter;
+import hcmute.edu.vn.selfalarmproject.receiver.MusicNotificationReceiver;
+import hcmute.edu.vn.selfalarmproject.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 
 
+@UnstableApi
 public class MusicChildMainFragment extends Fragment {
-
-
-    MediaPlayer mediaPlayer;
-    ShareSongViewModel viewModel;
-    Handler handler;
-    TextView temp, remain;
+//    public static MediaPlayer mediaPlayer;
+    public static ExoPlayer exoPlayer;
+    static ShareSongViewModel viewModel;
+    static Handler handler;
+    static TextView temp;
+    TextView remain, musicBarTitle, musicBarArtist;
     RelativeLayout musicBar;
-    ListView listView;
-    private final Runnable updateTimeRunnable = new Runnable() {
+    RecyclerView recyclerView;
+    FirebaseFirestore firestore;
+    public List<SongModel> musicList = new ArrayList<>();;
+    SongRecyclerAdapter songRecyclerAdapter;
+    LoadingAlert loadingAlert;
+    ImageButton musicBarBtn;
+    private long lastClickTime;
+    Intent serviceIntent;
+    ImageView image;
+    MediaSessionCompat mediaSessionCompat;
+    private static final Runnable updateTimeRunnable = new Runnable() {
         @Override
         public void run() {
-            if (mediaPlayer != null) {
-                int currentPosition = mediaPlayer.getCurrentPosition();
-                int duration = mediaPlayer.getDuration();
+            if (exoPlayer != null) {
+                int currentPosition = (int) exoPlayer.getCurrentPosition();
+                int duration = (int) exoPlayer.getDuration();
 
                 int remainTime = duration - currentPosition;
 
                 viewModel.setPassTime(currentPosition);
                 viewModel.setRemainTime(remainTime);
 
-//                temp.setText(formatDuration(currentPosition));
-//                remain.setText(formatDuration(remainTime));
+                temp.setText(formatDuration(currentPosition));
 
                 handler.postDelayed(this, 1000);
             }
@@ -63,158 +95,218 @@ public class MusicChildMainFragment extends Fragment {
         // Inflate the layout for this fragment
         View v =  inflater.inflate(R.layout.fragment_musicmain_child, container, false);
 
-        ComponentInit(v);
+        componentInit(v);
 
-        List<SongModel> musicList = new ArrayList<>();
-
-        int[] rawFiles = {
-                R.raw.duchotanthe,
-                R.raw.vothuong,
-                R.raw.anhmatbietcuoi,
-                R.raw.daudetruongthanh,
-                R.raw.emkhongthe,
-                R.raw.hetthuongcannhoremix,
-                R.raw.yeulathathu,
-                R.raw.matketnoi,
-                R.raw.macarong,
-                R.raw.kheuoc,
-                R.raw.honcayeu
-        };
-
-        int[] songImg = {
-                R.drawable.duchotanthe,
-                R.drawable.vothuong,
-                R.drawable.anhmatbietcuoi,
-                R.drawable.daudetruongthanh,
-                R.drawable.emkhongthe,
-                R.drawable.hetthuongcannhoremix,
-                R.drawable.yeulathathu,
-                R.drawable.matketnoi,
-                R.drawable.macarong,
-                R.drawable.macarong,
-                R.drawable.honcayeu
-        };
-
-        // Debug
-//        Log.i("Info", rawFiles.length + "");
-
-        for (int i = 0; i < rawFiles.length; i++) {
-            SongModel music = getMusicMetadata(rawFiles[i]);
-            if (music != null) {
-                musicList.add(new SongModel(rawFiles[i], songImg[i], music.getTitle(), music.getAuthor(),  music.getDuration()));
+        songRecyclerAdapter = new SongRecyclerAdapter(this.getContext(), musicList,  position -> {
+            Log.d("Clicked", "Song clicked");
+            long currentTime = System.currentTimeMillis();
+            if (currentTime - lastClickTime < 1000) {
+                return;
             }
-            else {
-                Log.d("Debug", "Empty raw file");
-            }
+            lastClickTime = currentTime;
+            ShareSongViewModel.setPosition(position);
+        });
+
+        recyclerView.setAdapter(songRecyclerAdapter);
+        refreshList();
+
+        if (ServiceUtils.isServiceRunning(requireContext(), MusicService.class)) {
+            Log.d("Service running", "Service running");
+            loadingMusicBar(null, MusicService.title, MusicService.imageURL, MusicService.artist);
+        } else {
+            Log.d("Service not running", "Service not running");
         }
 
-        // Debug
-//        for(Song s : musicList){
-//            Log.i("Info", s.toString());
-//        }
 
-        listView.setAdapter(new ListViewAdapter(musicList));
+        viewModel.getPosition().removeObservers(getViewLifecycleOwner());
+        if (!viewModel.getPosition().hasActiveObservers()) {
+            viewModel.getPosition().observe(getViewLifecycleOwner(), position -> {
+                Log.i("Pos", position + "");
+                if (position != -100) {
+                    songChange(position);
+                    Log.i("Info", "It runs");
+                }
+            });
+        }
 
-        viewModel.getPosition().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+        viewModel.getSong().observe(getViewLifecycleOwner(), new Observer<SongModel>() {
             @Override
-            public void onChanged(Integer position) {
-                songChange(v, position);
-                Log.i("Info", "It runs");
+            public void onChanged(SongModel value) {
+                musicBar.setVisibility(View.VISIBLE);
+                musicBarTitle.setText(value.getTitle());
+                musicBarArtist.setText(value.getAuthor());
+                Glide.with(requireContext()).load(value.getImageURL()).into(image);
             }
         });
 
-        listView.setOnItemClickListener((parent, view, position, id) -> {
-            viewModel.setPosition(position);
-            songChange(v, position);
+
+
+
+        musicBar.setOnClickListener(view -> switchFragment());
+
+        ShareSongViewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
+            if(status){
+                musicBarBtn.setImageResource(R.drawable.baseline_pause_24);
+                showNotification(R.drawable.baseline_pause_24, ShareSongViewModel.getPosition().getValue());
+            }
+            else{
+                musicBarBtn.setImageResource(R.drawable.baseline_play_arrow_24);
+                showNotification(R.drawable.baseline_play_arrow_24, ShareSongViewModel.getPosition().getValue());
+            }
         });
 
-
-        musicBar.setOnClickListener(view -> {
-            switchFragment();
+        musicBarBtn.setOnClickListener(view -> {
+            if(exoPlayer != null){
+                if(exoPlayer.isPlaying()){
+                    ShareSongViewModel.setStatus(false);
+                    exoPlayer.pause();
+                    musicBarBtn.setImageResource(R.drawable.baseline_play_arrow_24);
+                }
+                else {
+                    ShareSongViewModel.setStatus(true);
+                    exoPlayer.play();
+                    musicBarBtn.setImageResource(R.drawable.baseline_pause_24);
+                }
+            }
         });
 
         return v;
     }
-    private void songChange(View v, int position){
-        if(mediaPlayer != null){
-            mediaPlayer.stop();
-            mediaPlayer.release();
-            mediaPlayer = null;
+    private void songChange(int position){
+        Log.i("Song change", "Song change");
+        if(!musicList.isEmpty()){
+            SongModel selected_song = null;
+            if(position == musicList.size()){
+                ShareSongViewModel.setPosition(0);
+            } else if (position < 0) {
+                ShareSongViewModel.setPosition(musicList.size() - 1);
+            }
+            else{
+                loadingAlert.startAlert();
+                selected_song = musicList.get(position);
+
+                SongModel songModel = musicList.get(position);
+                serviceIntent.putExtra("title", songModel.getTitle());
+                serviceIntent.putExtra("songURL", songModel.getSongURL());
+                serviceIntent.putExtra("artist", songModel.getAuthor());
+                serviceIntent.putExtra("imageURL", songModel.getImageURL());
+                serviceIntent.putExtra("position", position);
+
+                loadingMusicBar(selected_song, null, null, null);
+
+                requireContext().stopService(serviceIntent);
+                requireContext().startService(serviceIntent);
+                showNotification(R.drawable.baseline_pause_24, position);
+
+                ShareSongViewModel.setStatus(true);
+                loadingAlert.stopAlert();
+            }
         }
-
-        SongModel selected_song;
-
-        if(position == listView.getCount()){
-            selected_song = (SongModel) listView.getItemAtPosition(0);
-            viewModel.setPosition(0);
-        }
-        else if(position < 0){
-            int curr_pos = listView.getCount() - 1;
-            selected_song = (SongModel) listView.getItemAtPosition(curr_pos);
-            viewModel.setPosition(curr_pos);
-        }
-        else {
-            selected_song = (SongModel) listView.getItemAtPosition(position);
-        }
-
-        mediaPlayer = MediaPlayer.create(getContext(), selected_song.getSongFileID());
-        viewModel.setSongMeta(mediaPlayer);
-        mediaPlayer.start();
-
-        viewModel.setSong(selected_song);
-        viewModel.setSongDuration(mediaPlayer.getDuration());
-
-        TextView musicBarTitle = (TextView) v.findViewById(R.id.musicBar_title);
-        TextView musicBarArtist = (TextView) v.findViewById(R.id.musicBar_artist);
-        ImageView image = (ImageView) v.findViewById(R.id.musicBar_img);
-
-        musicBar.setVisibility(View.VISIBLE);
-        musicBarTitle.setText(selected_song.getTitle());
-        musicBarArtist.setText(selected_song.getAuthor());
-        image.setImageResource(selected_song.getImgID());
-
-        startUpdatingTime();
     }
-    private void ComponentInit(View v){
+
+    public void showNotification(int playBtn, int position){
+        if(!musicList.isEmpty()){
+            SongModel songModel = musicList.get(position);
+
+            Intent intent = new Intent(requireContext(), MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE);
+            Intent prevIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_PREV");
+            PendingIntent prevPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, prevIntent, PendingIntent.FLAG_MUTABLE);
+            Intent playIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_PLAY");
+            playIntent.putExtra("songURL", songModel.getSongURL());
+            playIntent.putExtra("position", position);
+            PendingIntent playPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, playIntent, PendingIntent.FLAG_MUTABLE);
+            Intent nextIntent = new Intent(requireContext(), MusicNotificationReceiver.class).setAction("ACTION_NEXT");
+            PendingIntent nextPendingIntent = PendingIntent.getBroadcast(requireContext(), 0, nextIntent, PendingIntent.FLAG_MUTABLE);
+
+            Glide.with(requireContext())
+                    .asBitmap()
+                    .load(musicList.get(position).getImageURL())
+                    .into(new CustomTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            Notification notification = new NotificationCompat.Builder(requireContext(), "MusicServiceChannel")
+                                    .setSmallIcon(R.drawable.baseline_queue_music_24)
+                                    .setLargeIcon(resource)
+                                    .setContentTitle(musicList.get(position).getTitle())
+                                    .setContentText(musicList.get(position).getAuthor())
+                                    .addAction(R.drawable.baseline_skip_previous_24, "Previous", prevPendingIntent)
+                                    .addAction(playBtn, "Play", playPendingIntent)
+                                    .addAction(R.drawable.baseline_skip_next_24, "Next", nextPendingIntent)
+                                    .setStyle(new androidx.media.app.NotificationCompat.MediaStyle()
+                                            .setMediaSession(mediaSessionCompat.getSessionToken()))
+                                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                                    .setContentIntent(pendingIntent)
+                                    .setOngoing(true)
+                                    .setOnlyAlertOnce(true)
+                                    .build();
+
+                            NotificationManager notificationManager = (NotificationManager) requireActivity().getSystemService(requireContext().NOTIFICATION_SERVICE);
+                            notificationManager.notify(1, notification);
+                        }
+
+                        @Override
+                        public void onLoadCleared(@Nullable Drawable placeholder) {
+
+                        }
+                    });
+        }
+
+    }
+
+    public void loadingMusicBar(SongModel selected_song, String title, String imageURL, String artist){
+        if(selected_song != null){
+            viewModel.setSong(selected_song);
+            Log.i("Song not null", "Song not null");
+            musicBar.setVisibility(View.VISIBLE);
+            musicBarTitle.setText(selected_song.getTitle());
+            musicBarArtist.setText(selected_song.getAuthor());
+            Glide.with(this).load(selected_song.getImageURL()).into(image);
+        }
+        else{
+            Log.i("Song null", "Song null");
+            musicBar.setVisibility(View.VISIBLE);
+            musicBarTitle.setText(title);
+            musicBarArtist.setText(artist);
+            Glide.with(this).load(imageURL).into(image);
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d("Fragment Destroy", "Fragment Destroy");
+        super.onDestroy();
+    }
+
+    private void componentInit(View v){
         viewModel = new ViewModelProvider(requireActivity()).get(ShareSongViewModel.class);
         handler = new Handler();
-
         musicBar = v.findViewById(R.id.musicBar);
-//        temp = (TextView) v.findViewById(R.id.timeDemo);
-//        remain = (TextView) v.findViewById(R.id.remainDemo);
-        listView = v.findViewById(R.id.listView);
+        temp = v.findViewById(R.id.timeDemo);
+        musicBarBtn = v.findViewById(R.id.musicBar_btn);
+        recyclerView = v.findViewById(R.id.recyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
+        firestore = FirebaseFirestore.getInstance();
+        loadingAlert = new LoadingAlert(getActivity());
+        exoPlayer = MusicService.exoPlayer;
+        serviceIntent = new Intent(requireContext(), MusicService.class);
+
+        musicBarTitle = (TextView) v.findViewById(R.id.musicBar_title);
+        musicBarArtist = (TextView) v.findViewById(R.id.musicBar_artist);
+        image = (ImageView) v.findViewById(R.id.musicBar_img);
+
+        mediaSessionCompat = new MediaSessionCompat(requireContext(), "PlayerAudio");
     }
 
-    private void startUpdatingTime() {
+    public static void startUpdatingTime() {
+        exoPlayer = MusicService.exoPlayer;
         handler.post(updateTimeRunnable);
     }
     private void stopUpdatingTime() {
         handler.removeCallbacks(updateTimeRunnable);
     }
-    private SongModel getMusicMetadata(int resId) {
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        try {
-            retriever.setDataSource(this.getContext(), Uri.parse("android.resource://" + this.getContext().getPackageName() + "/" + resId));
-            String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            String author = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-            String durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
-            retriever.release();
-
-            if (title == null) title = "Unknown Title";
-            if (author == null) author = "Unknown Artist";
-            if (durationMs == null) durationMs = "0";
-
-            int duration = Integer.parseInt(durationMs);
-            String formattedDuration = formatDuration(duration);
-
-            return new SongModel(title, author, formattedDuration);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private String formatDuration(int durationMs) {
+    @NonNull
+    private static String formatDuration(int durationMs) {
         int seconds = (durationMs / 1000) % 60;
         int minutes = (durationMs / 1000) / 60;
         return minutes + ":" + String.format("%02d", seconds);
@@ -227,8 +319,60 @@ public class MusicChildMainFragment extends Fragment {
         MusicChildMainFragment fragment1 = (MusicChildMainFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG1");
         MusicDetailChildFragment fragment2 = (MusicDetailChildFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG2");
 
+        assert fragment1 != null;
         transaction.hide(fragment1);
+        assert fragment2 != null;
         transaction.show(fragment2);
         transaction.commit();
+    }
+
+    public boolean getDataFromFireStore(){
+        try {
+            loadingAlert.startAlert();
+            firestore.collection("songs")
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            musicList.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d("Firestore", document.getId() + " => " + document.getData());
+                                SongModel querySong = new SongModel(
+                                        document.getId(),
+                                        document.getData().get("title").toString(),
+                                        document.getData().get("artist").toString(),
+                                        document.getData().get("duration").toString(),
+                                        document.getData().get("image").toString(),
+                                        document.getData().get("url").toString()
+                                );
+                                musicList.add(querySong);
+                            }
+                            songRecyclerAdapter.notifyDataSetChanged();
+                            loadingAlert.stopAlert();
+                        } else {
+                            Log.w("Firestore", "Error getting documents.", task.getException());
+                        }
+                    });
+            return true;
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+    public void refreshList() {
+        firestore.collection("songs")
+                .addSnapshotListener((querySnapshot, e) -> {
+                    if (e != null) {
+                        Log.w("Firestore", "Listen failed.", e);
+                        return;
+                    }
+                    if (querySnapshot != null && !querySnapshot.isEmpty()) {
+                        for (DocumentSnapshot document : querySnapshot.getDocuments()) {
+                            Log.d("Firestore", "Document updated: " + document.getData());
+                        }
+                        getDataFromFireStore();
+                    } else {
+                        Log.d("Firestore", "No documents found.");
+                    }
+                });
     }
 }

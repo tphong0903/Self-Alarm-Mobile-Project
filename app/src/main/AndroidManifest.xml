@@ -12,7 +12,6 @@
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
@@ -24,13 +23,6 @@
 
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.ANSWER_PHONE_CALLS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <queries>
         <package android:name="com.android.sms" />
@@ -67,13 +59,6 @@
                 android:name="android.telecom.CALL_SCREENING_FILTER"
                 android:value="android.telecom.CallScreeningService.GENERAL_PURPOSE" />
         </service>
-        <service
-            android:name=".service.SystemSettingsService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="systemExempted" />
-
 
         <activity
             android:name=".views.EventDetailActivity"
@@ -96,7 +81,7 @@
         </activity>
 
         <receiver
-            android:name=".receivers.SmsReceiver"
+            android:name=".models.SmsReceiver"
             android:permission="android.permission.BROADCAST_SMS"
             android:exported="true">
             <intent-filter>
@@ -113,14 +98,6 @@
 
                 <data android:scheme="sms" />
                 <data android:scheme="smsto" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".receivers.SystemBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="hcmute.edu.vn.ACTION_BATTERY_UPDATE" />
             </intent-filter>
         </receiver>
 
