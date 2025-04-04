@@ -1,6 +1,7 @@
 package hcmute.edu.vn.selfalarmproject.utils;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -24,9 +25,12 @@ public class BlacklistHelper {
         String normalizedNumber = phoneNumber.replaceAll("[^0-9]", "");
         String googleUid = SharedPreferencesHelper.getGoogleUid(context);
 
+
         if (googleUid == null) {
-            callback.onResult(false);
-            return;
+            googleUid = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
+
+
         }
 
         FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");

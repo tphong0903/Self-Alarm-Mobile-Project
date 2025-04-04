@@ -32,9 +32,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
@@ -79,7 +83,7 @@ public class MessageFragment extends Fragment {
         if (googleUid == null) {
             googleUid = Settings.Secure.getString(this.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
             googleUid = googleUid.replaceAll("[^0-9]", "");
-            
+
 
         }
         Log.d("MyApp", "Google UID: " + googleUid);
@@ -149,13 +153,19 @@ public class MessageFragment extends Fragment {
                         for (DataSnapshot messageSnapshot : snapshot.getChildren()) {
                             MessageModel message = messageSnapshot.getValue(MessageModel.class);
 
+                            if (message == null || message.getTime() == null) continue;
+
                             String messageId = message.getId();
                             if (messageId == null) {
                                 messageId = messageSnapshot.getKey();
                                 message.setId(messageId);
                             }
 
-                            if (message != null && message.getTime() != null) {
+                            long messageTime = convertToEpoch(message.getTime());
+                            MessageModel oldMessage = messageMap.get(messageId);
+                            long oldMessageTime = oldMessage != null ? convertToEpoch(oldMessage.getTime()) : 0;
+
+                            if (oldMessage == null || oldMessageTime < messageTime) {
                                 messageMap.put(messageId, message);
                             }
                         }
@@ -164,15 +174,8 @@ public class MessageFragment extends Fragment {
                             if (!message.getSender().equals("Tôi")) {
                                 messages.add(message);
                             } else {
-                                String[] parts = message.getTime().split(":");
-                                long messageTime = Integer.parseInt(parts[0]) * 3600 +
-                                        Integer.parseInt(parts[1]) * 60 +
-                                        Integer.parseInt(parts[2]);
-
-                                long lastMessageTime = messages.isEmpty() ? 0 :
-                                        Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[0]) * 3600 +
-                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[1]) * 60 +
-                                                Integer.parseInt(messages.get(messages.size() - 1).getTime().split(":")[2]);
+                                long messageTime = convertToEpoch(message.getTime());
+                                long lastMessageTime = messages.isEmpty() ? 0 : convertToEpoch(messages.get(messages.size() - 1).getTime());
 
                                 if (lastMessageTime < messageTime) {
                                     messages.add(message);
@@ -238,4 +241,16 @@ public class MessageFragment extends Fragment {
 
         new ItemTouchHelper(itemTouchHelperCallback).attachToRecyclerView(recyclerView);
     }
+
+    private long convertToEpoch(String time) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            Date date = sdf.parse(time);
+            return date != null ? date.getTime() : 0;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
 }

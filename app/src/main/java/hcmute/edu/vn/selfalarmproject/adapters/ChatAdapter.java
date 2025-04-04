@@ -52,7 +52,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ChatViewHolder
             holder.tvSender.setText(sender);
         }
         holder.tvMessage.setText(message.getContent());
-        String formattedTime = message.getTime().substring(0, 5);
+        String formattedTime = message.getTime().substring(11, 16);
         holder.tvTime.setText(formattedTime);
 
     }

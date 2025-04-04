@@ -41,7 +41,7 @@ public class SmsReceiver extends BroadcastReceiver {
                         String messageBody = smsMessage.getMessageBody();
                         long timestamp = smsMessage.getTimestampMillis();
 
-                        String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date(timestamp));
+                        String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date(timestamp));
 
                         Log.d(TAG, "Tin nhắn mới từ: " + sender + ", Nội dung: " + messageBody);
                         Toast.makeText(context, "Tin nhắn từ " + sender + ": " + messageBody, Toast.LENGTH_LONG).show();
