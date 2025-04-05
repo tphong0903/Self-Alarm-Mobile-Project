@@ -1,22 +1,26 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
+import android.Manifest;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -27,10 +31,15 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.controllers.receivers.SystemBroadcastReceiver;
 import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.controllers.service.SystemSettingsService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 import hcmute.edu.vn.selfalarmproject.views.activities.BlacklistActivity;
 import hcmute.edu.vn.selfalarmproject.views.fragments.HomeFragment;
@@ -46,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Bundle savedInstanceState;
+    private SystemBroadcastReceiver receiver;
 
     MenuItem loginItem;
     MenuItem logoutItem;
@@ -54,56 +64,13 @@ public class MainActivity extends AppCompatActivity {
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
-    private final ActivityResultLauncher<String> requestSmsPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    Log.d("MainActivity", "Quyền gửi tin nhắn đã được cấp");
-                    Toast.makeText(MainActivity.this, "Quyền gửi tin nhắn đã được cấp", Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.d("MainActivity", "Quyền gửi tin nhắn bị từ chối");
 
-                    if (!shouldShowRequestPermissionRationale(android.Manifest.permission.SEND_SMS)) {
-                        new androidx.appcompat.app.AlertDialog.Builder(this)
-                                .setTitle("Permission Required")
-                                .setMessage("SMS permission is required. Please enable it in app settings.")
-                                .setPositiveButton("Settings", (dialog, which) -> openAppSettings())
-                                .setNegativeButton("Cancel", (dialog, which) -> {
-                                })
-                                .create().show();
-                    }
-                }
-            });
-
-    private void openAppSettings() {
-        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        android.net.Uri uri = android.net.Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        startActivity(intent);
-    }
-
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    Log.d("PhoneFragment", "Quyền danh bạ đã được cấp");
-                } else {
-                    Log.d("PhoneFragment", "Quyền danh bạ bị từ chối");
-                }
-            });
-    private final ActivityResultLauncher<Intent> requestRoleLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK) {
-                    Log.d("MainActivity", "ROLE_CALL_SCREENING granted!");
-                } else {
-                    Log.e("MainActivity", "ROLE_CALL_SCREENING denied!");
-                }
-            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkPermissions();
-        checkSmsPermission();
 
 
         this.savedInstanceState = savedInstanceState;
@@ -114,6 +81,11 @@ public class MainActivity extends AppCompatActivity {
             googleCalendarManager = new GoogleCalendarManager(this);
         }
         updateUI(savedInstanceState);
+        receiver = new SystemBroadcastReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(receiver, filter);
+        Intent serviceIntent = new Intent(this, SystemSettingsService.class);
+        startForegroundService(serviceIntent);
 
 
     }
@@ -122,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+        }
         stopService(new Intent(this, MusicService.class));
     }
 
@@ -211,12 +186,19 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
         Menu menu = navigationView.getMenu();
+        LinearLayout navHeader = (LinearLayout) navigationView.getHeaderView(0);
+        TextView name = navHeader.findViewById(R.id.nav_name);
+        TextView email = navHeader.findViewById(R.id.nav_email);
         loginItem = menu.findItem(R.id.nav_login);
         logoutItem = menu.findItem(R.id.nav_logout);
         if (account == null) {
+            navHeader.setVisibility(View.GONE);
             loginItem.setVisible(true);
             logoutItem.setVisible(false);
         } else {
+            navHeader.setVisibility(View.VISIBLE);
+            name.setText(account.getDisplayName());
+            email.setText(account.getEmail());
             loginItem.setVisible(false);
             logoutItem.setVisible(true);
         }
@@ -246,18 +228,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkPermissions() {
-        String[] permissions = {
-                android.Manifest.permission.READ_CONTACTS,
-                android.Manifest.permission.READ_PHONE_STATE,
-                android.Manifest.permission.CALL_PHONE,
-                android.Manifest.permission.READ_CALL_LOG,
-                android.Manifest.permission.ANSWER_PHONE_CALLS
-        };
+        String[] allPermissions = {
+                Manifest.permission.READ_CONTACTS,
+                Manifest.permission.READ_PHONE_STATE,
+                Manifest.permission.CALL_PHONE,
+                Manifest.permission.READ_CALL_LOG,
+                Manifest.permission.ANSWER_PHONE_CALLS,
+                Manifest.permission.SEND_SMS,
+                Manifest.permission.RECEIVE_SMS,
+                Manifest.permission.READ_SMS,
+                Manifest.permission.RECEIVE_MMS,
+                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.WRITE_SETTINGS,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.CHANGE_WIFI_STATE,
 
-        for (String permission : permissions) {
+        };
+        List<String> permissionsToRequest = new ArrayList<>();
+        for (String permission : allPermissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissionLauncher.launch(permission);
+                permissionsToRequest.add(permission);
             }
+        }
+        if (!permissionsToRequest.isEmpty()) {
+            ActivityCompat.requestPermissions(this,
+                    permissionsToRequest.toArray(new String[0]),
+                    1);
         }
         checkCallScreeningRole();
     }
@@ -267,38 +264,9 @@ public class MainActivity extends AppCompatActivity {
             RoleManager roleManager = (RoleManager) getSystemService(Context.ROLE_SERVICE);
             if (roleManager != null && !roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)) {
                 Intent intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING);
-                requestRoleLauncher.launch(intent);
                 Log.d("TAG", "Requesting ROLE_CALL_SCREENING...");
             } else {
                 Log.d("TAG", "Already has ROLE_CALL_SCREENING.");
-            }
-        }
-    }
-
-    private void checkSmsPermission() {
-        String[] permissions = {
-                android.Manifest.permission.SEND_SMS,
-                android.Manifest.permission.RECEIVE_SMS,
-                android.Manifest.permission.READ_SMS,
-                android.Manifest.permission.RECEIVE_MMS,
-        };
-
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                if (shouldShowRequestPermissionRationale(permission)) {
-                    new androidx.appcompat.app.AlertDialog.Builder(this)
-                            .setTitle("SMS Permission Required")
-                            .setMessage("This app needs SMS permissions to function properly")
-                            .setPositiveButton("OK", (dialog, which) ->
-                                    requestSmsPermissionLauncher.launch(permission))
-                            .setNegativeButton("Cancel", (dialog, which) ->
-                                    Toast.makeText(this, "SMS features won't work without permission", Toast.LENGTH_LONG).show())
-                            .create().show();
-                    return;
-                } else {
-                    requestSmsPermissionLauncher.launch(permission);
-                    return;
-                }
             }
         }
     }

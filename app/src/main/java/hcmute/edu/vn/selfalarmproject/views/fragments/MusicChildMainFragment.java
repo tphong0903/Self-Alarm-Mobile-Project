@@ -359,11 +359,11 @@ public class MusicChildMainFragment extends Fragment {
                                 Log.d("Firestore", document.getId() + " => " + document.getData());
                                 SongModel querySong = new SongModel(
                                         document.getId(),
-                                        document.getData().get("title").toString(),
-                                        document.getData().get("artist").toString(),
-                                        document.getData().get("duration").toString(),
-                                        document.getData().get("image").toString(),
-                                        document.getData().get("url").toString()
+                                        document.getData().get("title") != null ? document.getData().get("title").toString() : "",
+                                        document.getData().get("artist") != null ? document.getData().get("artist").toString() : "",
+                                        document.getData().get("duration") != null ? document.getData().get("duration").toString() : "",
+                                        document.getData().get("image") != null ? document.getData().get("image").toString() : "",
+                                        document.getData().get("url") != null ? document.getData().get("url").toString() : ""
                                 );
                                 musicList.add(querySong);
                             }

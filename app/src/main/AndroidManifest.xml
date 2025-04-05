@@ -17,6 +17,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
@@ -34,6 +35,12 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
+    <uses-permission android:name="android.permission.READ_SYNC_SETTINGS" />
+    <uses-permission android:name="android.permission.WRITE_SYNC_SETTINGS" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission
@@ -83,6 +90,11 @@
                 android:name="android.telecom.CALL_SCREENING_FILTER"
                 android:value="android.telecom.CallScreeningService.GENERAL_PURPOSE" />
         </service>
+        <service
+            android:name=".controllers.service.SystemSettingsService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
 
         <activity
             android:name=".views.activities.EventDetailActivity"
@@ -127,6 +139,13 @@
         <receiver
             android:name=".controllers.receivers.MusicNotificationReceiver"
             android:enabled="true" />
+        <receiver
+            android:name=".controllers.receivers.SystemBroadcastReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_CHANGED" />
+            </intent-filter>
+        </receiver>
 
 
         <meta-data
