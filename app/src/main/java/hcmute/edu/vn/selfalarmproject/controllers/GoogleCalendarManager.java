@@ -17,7 +17,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.service.CalendarService;
+import hcmute.edu.vn.selfalarmproject.controllers.service.CalendarService;
 
 public class GoogleCalendarManager {
     private HttpTransport transport;
@@ -26,6 +26,7 @@ public class GoogleCalendarManager {
     private final Activity activity;
     private com.google.api.services.calendar.Calendar service;
     private CalendarService calendarService;
+
     public GoogleCalendarManager(Activity activity) {
         this.activity = activity;
         try {
@@ -43,15 +44,19 @@ public class GoogleCalendarManager {
                 .build();
         calendarService = new CalendarService(service);
     }
+
     public void addEvent(String title, String description, String startTime, String endTime, String date) {
         calendarService.addEvent(title, description, startTime, endTime, date);
     }
+
     public List<Event> fetchCalendarEvents(int daytext, int Month, int Year) {
         return calendarService.fetchCalendarEvents(daytext, Month, Year);
     }
+
     public void deleteEvent(String id) {
         calendarService.deleteEvent(id);
     }
+
     public void editEvent(String id, String title, String description, String startTime, String endTime, String date) {
         calendarService.editEvent(id, title, description, startTime, endTime, date);
     }

@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".views.MusicChildMainFragment">
+    tools:context=".views.fragments.MusicChildMainFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
@@ -57,7 +57,7 @@
                 android:id="@+id/timeDemo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="loading"/>
+                android:text="loading" />
 
             <!--                <TextView-->
             <!--                    android:id="@+id/remainDemo"-->
@@ -87,6 +87,6 @@
         android:layout_marginBottom="100dp"
         android:layout_marginEnd="20dp"
         android:contentDescription="Add Music"
-        android:backgroundTint="@color/lavender"/>
+        android:backgroundTint="@color/lavender" />
 
 </FrameLayout>

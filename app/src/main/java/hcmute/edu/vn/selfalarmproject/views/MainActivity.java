@@ -30,8 +30,13 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
-import hcmute.edu.vn.selfalarmproject.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+import hcmute.edu.vn.selfalarmproject.views.activities.BlacklistActivity;
+import hcmute.edu.vn.selfalarmproject.views.fragments.HomeFragment;
+import hcmute.edu.vn.selfalarmproject.views.fragments.MessageFragment;
+import hcmute.edu.vn.selfalarmproject.views.fragments.MusicFragment;
+import hcmute.edu.vn.selfalarmproject.views.fragments.PhoneFragment;
 
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
