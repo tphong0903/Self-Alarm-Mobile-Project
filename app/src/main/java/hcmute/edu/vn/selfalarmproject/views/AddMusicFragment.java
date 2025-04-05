@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.File;
@@ -52,6 +53,7 @@ public class AddMusicFragment extends Fragment {
     Button selectAudio, submitBtn;
     ImageButton changeFragment;
     TextInputEditText titleInp, artistInp;
+    TextInputLayout titleLayout, artistLayout;
     TextView songFile;
     private ActivityResultLauncher<String> permissionLauncher;
     private ActivityResultLauncher<Intent> audioPickerLauncher;
@@ -162,6 +164,16 @@ public class AddMusicFragment extends Fragment {
         });
 
         submitBtn.setOnClickListener(view -> {
+            if(titleInp.getText().toString().isEmpty())
+            {
+                titleLayout.setError("Title can't be empty");
+                return;
+            }
+            if(artistInp.getText().toString().isEmpty())
+            {
+                artistLayout.setError("Artists can't be empty");
+                return;
+            }
             UploadFile.uploadFile(requireContext(), audioUri, new UploadFile.UploadCallback() {
                 @Override
                 public void onSuccess(String url) {
@@ -201,6 +213,8 @@ public class AddMusicFragment extends Fragment {
         artistInp = v.findViewById(R.id.artistInp);
         submitBtn = v.findViewById(R.id.submitBtn);
         songFile = v.findViewById(R.id.songFile);
+        titleLayout = v.findViewById(R.id.titleInpLayout);
+        artistLayout = v.findViewById(R.id.artistInpLayout);
         firestore = FirebaseFirestore.getInstance();
         handler = new Handler();
     }
