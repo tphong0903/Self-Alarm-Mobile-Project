@@ -5,15 +5,10 @@
     android:layout_height="match_parent"
     tools:context=".views.MusicChildMainFragment">
 
-    <!--    <ListView-->
-    <!--        android:id="@+id/listView"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="match_parent">-->
-
-    <!--    </ListView>-->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
+        android:layout_marginBottom="100dp"
         android:layout_height="wrap_content" />
 
     <RelativeLayout
@@ -82,5 +77,16 @@
             android:src="@drawable/baseline_pause_24" />
 
     </RelativeLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/addMusic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_add_24"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="100dp"
+        android:layout_marginEnd="20dp"
+        android:contentDescription="Add Music"
+        android:backgroundTint="@color/lavender"/>
 
 </FrameLayout>

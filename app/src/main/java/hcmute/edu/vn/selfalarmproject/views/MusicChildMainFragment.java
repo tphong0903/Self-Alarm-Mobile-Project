@@ -5,7 +5,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
@@ -28,13 +27,13 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
-import androidx.media3.exoplayer.SimpleExoPlayer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.transition.Transition;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -59,6 +58,7 @@ public class MusicChildMainFragment extends Fragment {
     static Handler handler;
     static TextView temp;
     TextView remain, musicBarTitle, musicBarArtist;
+    FloatingActionButton addMusicBtn;
     RelativeLayout musicBar;
     RecyclerView recyclerView;
     FirebaseFirestore firestore;
@@ -142,7 +142,7 @@ public class MusicChildMainFragment extends Fragment {
 
 
 
-        musicBar.setOnClickListener(view -> switchFragment());
+        musicBar.setOnClickListener(view -> switchFragment("Detail"));
 
         ShareSongViewModel.getPlayStatus().observe(getViewLifecycleOwner(), status -> {
             if(status){
@@ -169,6 +169,8 @@ public class MusicChildMainFragment extends Fragment {
                 }
             }
         });
+
+        addMusicBtn.setOnClickListener(view -> switchFragment("Add"));
 
         return v;
     }
@@ -276,6 +278,8 @@ public class MusicChildMainFragment extends Fragment {
     public void onDestroy() {
         Log.d("Fragment Destroy", "Fragment Destroy");
         super.onDestroy();
+        NotificationManager notificationManager = (NotificationManager) requireActivity().getSystemService(requireContext().NOTIFICATION_SERVICE);
+        notificationManager.cancel(1);
     }
 
     private void componentInit(View v){
@@ -285,6 +289,7 @@ public class MusicChildMainFragment extends Fragment {
         temp = v.findViewById(R.id.timeDemo);
         musicBarBtn = v.findViewById(R.id.musicBar_btn);
         recyclerView = v.findViewById(R.id.recyclerView);
+        addMusicBtn = v.findViewById(R.id.addMusic);
         recyclerView.setLayoutManager(new LinearLayoutManager(this.getContext()));
         firestore = FirebaseFirestore.getInstance();
         loadingAlert = new LoadingAlert(getActivity());
@@ -312,18 +317,35 @@ public class MusicChildMainFragment extends Fragment {
         return minutes + ":" + String.format("%02d", seconds);
     }
 
-    public void switchFragment() {
+    public void switchFragment(String fragment) {
         FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
         transaction.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left);
 
         MusicChildMainFragment fragment1 = (MusicChildMainFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG1");
-        MusicDetailChildFragment fragment2 = (MusicDetailChildFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG2");
 
-        assert fragment1 != null;
-        transaction.hide(fragment1);
-        assert fragment2 != null;
-        transaction.show(fragment2);
-        transaction.commit();
+        switch (fragment){
+            case "Detail":
+                MusicDetailChildFragment fragment2 = (MusicDetailChildFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG2");
+
+                assert fragment1 != null;
+                transaction.hide(fragment1);
+                assert fragment2 != null;
+                transaction.show(fragment2);
+                transaction.commit();
+
+                break;
+            case "Add":
+
+                AddMusicFragment fragment3 = (AddMusicFragment) getActivity().getSupportFragmentManager().findFragmentByTag("FRAG3");
+
+                assert fragment1 != null;
+                transaction.hide(fragment1);
+                assert fragment3 != null;
+                transaction.show(fragment3);
+                transaction.commit();
+
+                break;
+        }
     }
 
     public boolean getDataFromFireStore(){
