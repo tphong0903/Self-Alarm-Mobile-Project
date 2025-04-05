@@ -24,19 +24,26 @@ public class CallScreenerService extends CallScreeningService {
         }
 
         String phoneNumber = handle.getSchemeSpecificPart();
+        String finalPhoneNumber;
+        if (phoneNumber != null && phoneNumber.startsWith("+84")) {
+            finalPhoneNumber = phoneNumber.replace("+84", "0");
+        } else {
+            finalPhoneNumber = "";
+        }
+
         Log.d(TAG, "Screening call from: " + phoneNumber);
 
-        BlacklistHelper.isNumberBlacklisted(this, phoneNumber, isBlacklisted -> {
+        BlacklistHelper.isNumberBlacklisted(this, finalPhoneNumber, isBlacklisted -> {
             CallResponse.Builder response = new CallResponse.Builder();
 
             if (isBlacklisted) {
-                Log.d(TAG, "Rejecting blacklisted call from: " + phoneNumber);
+                Log.d(TAG, "Rejecting blacklisted call from: " + finalPhoneNumber);
                 response.setDisallowCall(true)
                         .setRejectCall(true)
                         .setSkipCallLog(false)
                         .setSkipNotification(false);
             } else {
-                Log.d(TAG, "Allowing call from: " + phoneNumber);
+                Log.d(TAG, "Allowing call from: " + finalPhoneNumber);
                 response.setDisallowCall(false)
                         .setRejectCall(false);
             }

@@ -1,12 +1,8 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
-import android.Manifest;
-import android.app.Activity;
 import android.app.role.RoleManager;
-import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -18,11 +14,9 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.OptIn;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -36,27 +30,52 @@ import com.google.android.material.navigation.NavigationView;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
-import hcmute.edu.vn.selfalarmproject.receiver.HeadphoneReceiver;
 import hcmute.edu.vn.selfalarmproject.service.MusicService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 
-@UnstableApi
 public class MainActivity extends AppCompatActivity {
     DrawerLayout drawerLayout;
     BottomNavigationView bottomNavigationView;
 
     NavigationView navigationView;
 
-    HeadphoneReceiver headphoneReceiver;
-    private Bundle savedInstanceState;
 
+    private Bundle savedInstanceState;
 
     MenuItem loginItem;
     MenuItem logoutItem;
 
+
     public static GoogleCalendarManager googleCalendarManager;
     public static GoogleSignInAccount account;
     private GoogleSignInManager googleSignInManager;
+    private final ActivityResultLauncher<String> requestSmsPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    Log.d("MainActivity", "Quyền gửi tin nhắn đã được cấp");
+                    Toast.makeText(MainActivity.this, "Quyền gửi tin nhắn đã được cấp", Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.d("MainActivity", "Quyền gửi tin nhắn bị từ chối");
+
+                    if (!shouldShowRequestPermissionRationale(android.Manifest.permission.SEND_SMS)) {
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Permission Required")
+                                .setMessage("SMS permission is required. Please enable it in app settings.")
+                                .setPositiveButton("Settings", (dialog, which) -> openAppSettings())
+                                .setNegativeButton("Cancel", (dialog, which) -> {
+                                })
+                                .create().show();
+                    }
+                }
+            });
+
+    private void openAppSettings() {
+        Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        android.net.Uri uri = android.net.Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivity(intent);
+    }
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -74,12 +93,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
-    @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         checkPermissions();
+        checkSmsPermission();
+
 
         this.savedInstanceState = savedInstanceState;
         googleSignInManager = new GoogleSignInManager(this);
@@ -90,27 +110,6 @@ public class MainActivity extends AppCompatActivity {
         }
         updateUI(savedInstanceState);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_HEADSET_PLUG);
-        filter.addAction(BluetoothDevice.ACTION_ACL_CONNECTED);
-        filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(
-                    (Activity) this,
-                    new String[]{android.Manifest.permission.BLUETOOTH_CONNECT},
-                    101
-            );
-        }
-
-        headphoneReceiver = new HeadphoneReceiver();
-        registerReceiver(headphoneReceiver, filter);
-
-    }
-
-
-    private void signIn() {
-        googleSignInManager.signIn(this);
 
     }
 
@@ -119,7 +118,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         stopService(new Intent(this, MusicService.class));
-        unregisterReceiver(headphoneReceiver);
+    }
+
+    private void signIn() {
+        googleSignInManager.signIn(this);
+
     }
 
     @Override
@@ -267,5 +270,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void checkSmsPermission() {
+        String[] permissions = {
+                android.Manifest.permission.SEND_SMS,
+                android.Manifest.permission.RECEIVE_SMS,
+                android.Manifest.permission.READ_SMS,
+                android.Manifest.permission.RECEIVE_MMS,
+        };
+
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                if (shouldShowRequestPermissionRationale(permission)) {
+                    new androidx.appcompat.app.AlertDialog.Builder(this)
+                            .setTitle("SMS Permission Required")
+                            .setMessage("This app needs SMS permissions to function properly")
+                            .setPositiveButton("OK", (dialog, which) ->
+                                    requestSmsPermissionLauncher.launch(permission))
+                            .setNegativeButton("Cancel", (dialog, which) ->
+                                    Toast.makeText(this, "SMS features won't work without permission", Toast.LENGTH_LONG).show())
+                            .create().show();
+                    return;
+                } else {
+                    requestSmsPermissionLauncher.launch(permission);
+                    return;
+                }
+            }
+        }
+    }
 
 }

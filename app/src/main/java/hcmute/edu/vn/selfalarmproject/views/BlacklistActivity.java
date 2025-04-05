@@ -1,6 +1,7 @@
 package hcmute.edu.vn.selfalarmproject.views;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
@@ -62,7 +63,6 @@ public class BlacklistActivity extends AppCompatActivity {
         blacklistedNumbers = new ArrayList<>();
         rvBlacklist.setLayoutManager(new LinearLayoutManager(this));
         adapter = new BlacklistAdapter(blacklistedNumbers, position -> {
-            // Delete
             if (position != RecyclerView.NO_POSITION) {
                 removeBlacklistedNumber(position);
             }
@@ -70,15 +70,15 @@ public class BlacklistActivity extends AppCompatActivity {
         rvBlacklist.setAdapter(adapter);
 
         googleUid = SharedPreferencesHelper.getGoogleUid(this);
-        if (googleUid != null) {
-            FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
-            blacklistRef = database.getReference(googleUid + "blacklist").child("blacklist");
-            loadBlacklist();
-        } else {
-            Toast.makeText(this, "Không thể xác định người dùng. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
-            finish();
-        }
+        if (googleUid == null) {
+            googleUid = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
+            googleUid = googleUid.replaceAll("[^0-9]", "");
 
+
+        }
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app");
+        blacklistRef = database.getReference(googleUid + "blacklist").child("blacklist");
+        loadBlacklist();
         btnAdd.setOnClickListener(v -> {
             String phoneNumber = etPhoneNumber.getText().toString().trim();
             if (!TextUtils.isEmpty(phoneNumber)) {
