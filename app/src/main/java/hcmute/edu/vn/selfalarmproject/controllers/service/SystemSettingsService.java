@@ -1,13 +1,17 @@
 package hcmute.edu.vn.selfalarmproject.controllers.service;
 
+import android.accounts.AccountManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.IBinder;
@@ -43,8 +47,8 @@ public class SystemSettingsService extends Service {
         createNotificationChannel();
         startForeground(NOTIFICATION_ID, createNotification());
 
-        IntentFilter filter = new IntentFilter("hcmute.edu.vn.ACTION_BATTERY_UPDATE");
-        registerReceiver(batteryChangeReceiver, filter, Context.RECEIVER_EXPORTED);
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryChangeReceiver, filter);
     }
 
     private void createNotificationChannel() {
@@ -80,14 +84,63 @@ public class SystemSettingsService extends Service {
         Log.d("SystemSettingsService", "Adjusting settings based on battery: " + batteryPct + "%");
 
         if (batteryPct < 20) {
-            setScreenBrightness(0.3f);
+            setScreenBrightness(0.2f);
         } else if (batteryPct < 50) {
-            setScreenBrightness(0.6f);
+            setScreenBrightness(0.5f);
+        }
+
+        if (batteryPct < 15) {
+            toggleWifi(false);
+        }
+
+        if (batteryPct < 10) {
+            toggleSync(false);
+        }
+    }
+
+    private void toggleWifi(boolean enable) {
+        try {
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+            if (wifiManager != null) {
+                wifiManager.setWifiEnabled(enable);
+                Log.d("SystemSettingsService", "WiFi " + (enable ? "enabled" : "disabled"));
+            }
+        } catch (Exception e) {
+            Log.e("SystemSettingsService", "Failed to toggle WiFi: " + e.getMessage());
+        }
+    }
+
+    private void toggleSync(boolean enable) {
+        try {
+            ContentResolver.setMasterSyncAutomatically(enable);
+            Log.d("SystemSettingsService", "Master sync set to " + enable);
+
+            android.accounts.Account[] accounts = AccountManager.get(getApplicationContext()).getAccounts();
+            if (accounts != null && accounts.length > 0) {
+                for (android.accounts.Account account : accounts) {
+                    ContentResolver.setSyncAutomatically(account, "com.google", enable);
+                    Log.d("SystemSettingsService", "Sync for account " + account.name + " set to " + enable);
+                }
+            } else {
+                Log.d("SystemSettingsService", "No accounts found to configure sync settings");
+            }
+        } catch (Exception e) {
+            Log.e("SystemSettingsService", "Failed to toggle sync: " + e.getMessage());
         }
     }
 
     private void setScreenBrightness(float brightness) {
         try {
+            if (!Settings.System.canWrite(this)) {
+                Log.w("SystemSettingsService", "No WRITE_SETTINGS permission. Requesting...");
+
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
+                intent.setData(Uri.parse("package:" + getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+                return;
+            }
+
             Settings.System.putInt(getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS_MODE,
                     Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL);
@@ -96,6 +149,9 @@ public class SystemSettingsService extends Service {
             Settings.System.putInt(getContentResolver(),
                     Settings.System.SCREEN_BRIGHTNESS,
                     brightnessValue);
+
+            Log.d("SystemSettingsService", "Brightness set to " + brightnessValue);
+
         } catch (Exception e) {
             Log.e("SystemSettingsService", "Failed to set brightness: " + e.getMessage());
         }

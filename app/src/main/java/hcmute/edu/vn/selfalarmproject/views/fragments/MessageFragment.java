@@ -17,6 +17,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -48,10 +49,10 @@ import java.util.Locale;
 import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.views.adapters.MessageAdapter;
 import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 import hcmute.edu.vn.selfalarmproject.views.activities.NewMessageActivity;
+import hcmute.edu.vn.selfalarmproject.views.adapters.MessageAdapter;
 
 public class MessageFragment extends Fragment {
     private RecyclerView recyclerView;
@@ -97,6 +98,7 @@ public class MessageFragment extends Fragment {
         databaseReference = FirebaseDatabase.getInstance("https://week6-8ecb2-default-rtdb.asia-southeast1.firebasedatabase.app").getReference(googleUid);
 
         setupSearchFunctionality();
+
         fetchMessagesFromFirebase();
         setupSwipeToDelete();
 
@@ -107,6 +109,15 @@ public class MessageFragment extends Fragment {
     }
 
     private void setupSearchFunctionality() {
+        searchEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+            } else if (getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+        });
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {

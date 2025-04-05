@@ -64,6 +64,9 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
 
         Log.d("MessageAdapter", "onBindViewHolder: " + message.getId());
         String sender = message.getId();
+        if (sender != null && sender.startsWith("+84")) {
+            sender = sender.replace("+84", "0");
+        }
         String contactName = getContactName(context, sender);
         googleUid = SharedPreferencesHelper.getGoogleUid(context);
         if (googleUid == null) {

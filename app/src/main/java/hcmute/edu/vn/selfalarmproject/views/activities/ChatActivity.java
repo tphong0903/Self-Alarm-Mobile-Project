@@ -1,7 +1,5 @@
 package hcmute.edu.vn.selfalarmproject.views.activities;
 
-import static android.content.ContentValues.TAG;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -31,9 +29,9 @@ import java.util.List;
 import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ChatAdapter;
 import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+import hcmute.edu.vn.selfalarmproject.views.adapters.ChatAdapter;
 
 public class ChatActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -69,7 +67,7 @@ public class ChatActivity extends AppCompatActivity {
         Intent intent = getIntent();
         if (intent != null) {
             selectedMessageId = intent.getStringExtra("messageId");
-            Log.d(TAG, "Received message id: " + selectedMessageId);
+            Log.d("OK", "Received message id: " + selectedMessageId);
         }
         String googleUid = SharedPreferencesHelper.getGoogleUid(this);
         if (googleUid == null) {
@@ -108,6 +106,7 @@ public class ChatActivity extends AppCompatActivity {
             String messageText = etMessage.getText().toString().trim();
             if (!messageText.isEmpty()) {
                 String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+                System.out.println("Current time: " + time);
                 sendSMS(messageText, selectedMessageId);
                 MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageText, true, time);
                 messagesRef.push().setValue(message)

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.role.RoleManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -36,7 +37,9 @@ import java.util.List;
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
 import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
+import hcmute.edu.vn.selfalarmproject.controllers.receivers.SystemBroadcastReceiver;
 import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.controllers.service.SystemSettingsService;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 import hcmute.edu.vn.selfalarmproject.views.activities.BlacklistActivity;
 import hcmute.edu.vn.selfalarmproject.views.fragments.HomeFragment;
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private Bundle savedInstanceState;
+    private SystemBroadcastReceiver receiver;
 
     MenuItem loginItem;
     MenuItem logoutItem;
@@ -77,6 +81,11 @@ public class MainActivity extends AppCompatActivity {
             googleCalendarManager = new GoogleCalendarManager(this);
         }
         updateUI(savedInstanceState);
+        receiver = new SystemBroadcastReceiver();
+        IntentFilter filter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(receiver, filter);
+        Intent serviceIntent = new Intent(this, SystemSettingsService.class);
+        startForegroundService(serviceIntent);
 
 
     }
@@ -85,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (receiver != null) {
+            unregisterReceiver(receiver);
+        }
         stopService(new Intent(this, MusicService.class));
     }
 
@@ -226,7 +238,12 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.RECEIVE_SMS,
                 Manifest.permission.READ_SMS,
                 Manifest.permission.RECEIVE_MMS,
-                Manifest.permission.POST_NOTIFICATIONS
+                Manifest.permission.POST_NOTIFICATIONS,
+                Manifest.permission.WRITE_SETTINGS,
+                Manifest.permission.FOREGROUND_SERVICE,
+                Manifest.permission.ACCESS_WIFI_STATE,
+                Manifest.permission.CHANGE_WIFI_STATE,
+
         };
         List<String> permissionsToRequest = new ArrayList<>();
         for (String permission : allPermissions) {

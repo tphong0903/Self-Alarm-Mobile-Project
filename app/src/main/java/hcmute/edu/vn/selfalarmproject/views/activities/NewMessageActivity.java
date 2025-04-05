@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.Locale;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ContactAdapter;
 import hcmute.edu.vn.selfalarmproject.models.MessageModel;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+import hcmute.edu.vn.selfalarmproject.views.adapters.ContactAdapter;
 
 public class NewMessageActivity extends AppCompatActivity {
     private EditText tvTitle, etMessage;
@@ -99,7 +99,7 @@ public class NewMessageActivity extends AppCompatActivity {
             String selectedMessageId = tvTitle.getText().toString().replaceAll("[^0-9]", "");
             Log.d("SEND", "Selected message ID: " + tvTitle.getText().toString());
             String messageContent = etMessage.getText().toString().trim();
-            String time = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+            String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
             MessageModel message = new MessageModel(selectedMessageId, "Tôi", selectedMessageId, messageContent, true, time);
             if (!messageContent.isEmpty()) {
                 Toast.makeText(this, "Tin nhắn: " + messageContent, Toast.LENGTH_SHORT).show();
@@ -125,7 +125,7 @@ public class NewMessageActivity extends AppCompatActivity {
                 } else {
                     rvMessages.setVisibility(View.VISIBLE);
                 }
-                searchContactByPhoneNumber(s.toString().trim());
+                searchContacts(s.toString().trim());
             }
 
             @Override
@@ -141,9 +141,9 @@ public class NewMessageActivity extends AppCompatActivity {
         }
     }
 
-    private void searchContactByPhoneNumber(String phoneNumber) {
+    private void searchContacts(String query) {
         contactList.clear();
-        if (phoneNumber.isEmpty()) {
+        if (query.isEmpty()) {
             contactAdapter.notifyDataSetChanged();
             return;
         }
@@ -155,25 +155,25 @@ public class NewMessageActivity extends AppCompatActivity {
                 ContactsContract.CommonDataKinds.Phone.NUMBER
         };
 
-        Cursor cursor = contentResolver.query(uri, projection, null, null, null);
+        String selection = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME + " LIKE ? OR " +
+                ContactsContract.CommonDataKinds.Phone.NUMBER + " LIKE ?";
+        String[] selectionArgs = new String[]{"%" + query + "%", "%" + query + "%"};
+
+        Cursor cursor = contentResolver.query(uri, projection, selection, selectionArgs, null);
+        int count = 0;
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 String contactName = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                 String contactNumber = cursor.getString(cursor.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER));
 
-                String normalizedContactNumber = contactNumber.replaceAll("[^0-9]", "");
-                String normalizedInput = phoneNumber.replaceAll("[^0-9]", "");
-
-                Log.d("SEARCH", "Tìm: " + normalizedInput + " | SDT: " + normalizedContactNumber);
-
-                if (normalizedContactNumber.contains(normalizedInput)) {
-                    contactList.add(contactName + " - " + contactNumber);
-                }
+                contactList.add(contactName + " - " + contactNumber);
+                count++;
             }
             cursor.close();
         }
 
+        Log.d("ContactSearch", "Found " + count + " matching contacts");
         contactAdapter.notifyDataSetChanged();
     }
 
