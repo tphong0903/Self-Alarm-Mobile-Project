@@ -60,20 +60,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SelfAlarmProject"
         tools:targetApi="31">
-        <receiver android:name=".service.TaskReminderReceiver" />
+        <receiver android:name=".controllers.receivers.TaskReminderReceiver" />
         <provider
             android:name=".models.TaskContentProvider"
             android:authorities="hcmute.edu.vn.selfalarmproject.provider"
             android:exported="false"
             android:grantUriPermissions="true" />
 
-        <activity android:name=".views.ChatActivity" />
+        <activity android:name=".views.activities.ChatActivity" />
         <activity
-            android:name=".views.NewMessageActivity"
+            android:name=".views.activities.NewMessageActivity"
             android:parentActivityName=".views.MainActivity" />
 
         <service
-            android:name=".service.CallScreenerService"
+            android:name=".controllers.service.CallScreenerService"
             android:exported="true"
             android:permission="android.permission.BIND_SCREENING_SERVICE">
             <intent-filter>
@@ -85,10 +85,10 @@
         </service>
 
         <activity
-            android:name=".views.EventDetailActivity"
+            android:name=".views.activities.EventDetailActivity"
             android:exported="false"
             android:parentActivityName=".views.MainActivity" />
-        <activity android:name=".views.BlacklistActivity" />
+        <activity android:name=".views.activities.BlacklistActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -105,7 +105,7 @@
         </activity>
 
         <receiver
-            android:name=".receiver.SmsReceiver"
+            android:name=".controllers.receivers.SmsReceiver"
             android:exported="true"
             android:permission="android.permission.BROADCAST_SMS">
             <intent-filter>
@@ -125,7 +125,7 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name=".receiver.MusicNotificationReceiver"
+            android:name=".controllers.receivers.MusicNotificationReceiver"
             android:enabled="true" />
 
 
@@ -133,7 +133,7 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
         <service
-            android:name=".service.MusicService"
+            android:name=".controllers.service.MusicService"
             android:foregroundServiceType="mediaPlayback" />
     </application>
 
