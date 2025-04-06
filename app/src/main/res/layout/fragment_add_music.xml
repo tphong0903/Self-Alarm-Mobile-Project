@@ -11,15 +11,15 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
-        android:paddingBottom="200dp">
+        android:paddingBottom="100dp">
 
         <ImageButton
             android:id="@+id/fstFragment"
-            android:contentDescription="Return Main"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginVertical="20dp"
             android:backgroundTint="#00FFFFFF"
+            android:contentDescription="Return Main"
             android:src="@drawable/baseline_arrow_back_24" />
 
         <Button
@@ -28,11 +28,11 @@
             android:layout_height="wrap_content"
             android:text="SELECT FILE" />
 
-        <TextView
-            android:id="@+id/songFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="abcdef1234.mp3" />
+        <!--        <TextView-->
+        <!--            android:id="@+id/songFile"-->
+        <!--            android:layout_width="wrap_content"-->
+        <!--            android:layout_height="wrap_content"-->
+        <!--            android:text="abcdef1234.mp3" />-->
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/titleInpLayout"
@@ -43,8 +43,9 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/titleInp"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:hint="Title"
-                android:layout_height="wrap_content" />
+                />
 
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -56,31 +57,31 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/artistInp"
                 android:layout_width="match_parent"
-                android:hint="Artist"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:hint="Artist" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="20sp"
             android:layout_marginVertical="30dp"
-            android:text="Song Image" />
+            android:text="Song Image"
+            android:textSize="20sp" />
 
         <ImageView
             android:id="@+id/albumImage"
             android:layout_width="200dp"
+            android:layout_height="200dp"
             android:layout_gravity="center"
-            android:src="@drawable/banned"
-            android:layout_height="200dp" />
+            android:src="@drawable/banned" />
 
         <Button
             android:id="@+id/submitBtn"
-            android:layout_marginTop="20dp"
-            android:layout_gravity="end"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
             android:text="ADD" />
 
     </LinearLayout>

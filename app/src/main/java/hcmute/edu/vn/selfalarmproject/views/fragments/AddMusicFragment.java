@@ -9,10 +9,13 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -43,6 +46,7 @@ import hcmute.edu.vn.selfalarmproject.utils.cloud.UploadFile;
 public class AddMusicFragment extends Fragment {
     Button selectAudio, submitBtn;
     ImageButton changeFragment;
+    ImageView imageView;
     TextInputEditText titleInp, artistInp;
     TextInputLayout titleLayout, artistLayout;
     TextView songFile;
@@ -53,6 +57,7 @@ public class AddMusicFragment extends Fragment {
     FirebaseFirestore firestore;
     private SongModel songModel = new SongModel();
     Handler handler;
+    LoadingAlert loadingAlert;
     private final Runnable uploadCloud = new Runnable() {
         @Override
         public void run() {
@@ -70,6 +75,10 @@ public class AddMusicFragment extends Fragment {
                             Log.d("Firestore", "Document added with ID: " + documentReference.getId()))
                     .addOnFailureListener(e ->
                             Log.w("Firestore", "Error adding document", e));
+
+            titleInp.setText("");
+            artistInp.setText("");
+            imageView.setImageResource(R.drawable.banned);
 
             switchFragment();
         }
@@ -127,6 +136,11 @@ public class AddMusicFragment extends Fragment {
                 artistLayout.setError("Artists can't be empty");
                 return;
             }
+
+            songModel.setTitle(titleInp.getText().toString());
+            songModel.setAuthor(artistInp.getText().toString());
+
+            loadingAlert.startAlert();
             UploadFile.uploadFile(requireContext(), audioUri, new UploadFile.UploadCallback() {
                 @Override
                 public void onSuccess(String url) {
@@ -154,6 +168,50 @@ public class AddMusicFragment extends Fragment {
             });
 
             handler.postDelayed(uploadCloud, 7500);
+
+            loadingAlert.stopAlert();
+        });
+
+        titleInp.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().trim().isEmpty()) {
+                    titleLayout.setError("Title can't be empty");
+                } else {
+                    titleLayout.setError(null);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
+        artistInp.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().trim().isEmpty()) {
+                    artistLayout.setError("Artist can't be empty");
+                } else {
+                    artistLayout.setError(null);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
         });
 
         return v;
@@ -165,11 +223,33 @@ public class AddMusicFragment extends Fragment {
         titleInp = v.findViewById(R.id.titleInp);
         artistInp = v.findViewById(R.id.artistInp);
         submitBtn = v.findViewById(R.id.submitBtn);
-        songFile = v.findViewById(R.id.songFile);
         titleLayout = v.findViewById(R.id.titleInpLayout);
         artistLayout = v.findViewById(R.id.artistInpLayout);
+        imageView = v.findViewById(R.id.albumImage);
+
         firestore = FirebaseFirestore.getInstance();
         handler = new Handler();
+        loadingAlert = new LoadingAlert(getActivity());
+
+        titleInp.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus && getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+            } else if (getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+        });
+
+        artistInp.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus && getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+            } else if (getActivity() != null) {
+                getActivity().getWindow().setSoftInputMode(
+                        WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+        });
     }
 
     public void switchFragment() {
@@ -213,7 +293,6 @@ public class AddMusicFragment extends Fragment {
                 File albumArtFile = saveBitmapToFile(albumArt);
                 imageURI = Uri.fromFile(albumArtFile);
 
-                ImageView imageView = v.findViewById(R.id.albumImage);
                 imageView.setImageBitmap(albumArt);
             } else {
                 Log.d("AudioMeta", "No embedded album art found");
