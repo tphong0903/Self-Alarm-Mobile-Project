@@ -35,11 +35,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.controllers.GoogleCalendarManager;
-import hcmute.edu.vn.selfalarmproject.controllers.GoogleSignInManager;
 import hcmute.edu.vn.selfalarmproject.controllers.receivers.SystemBroadcastReceiver;
-import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
-import hcmute.edu.vn.selfalarmproject.controllers.service.SystemSettingsService;
+import hcmute.edu.vn.selfalarmproject.controllers.services.MusicService;
+import hcmute.edu.vn.selfalarmproject.controllers.services.SystemSettingsService;
+import hcmute.edu.vn.selfalarmproject.utils.GoogleCalendarManager;
+import hcmute.edu.vn.selfalarmproject.utils.GoogleSignInManager;
 import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
 import hcmute.edu.vn.selfalarmproject.views.activities.BlacklistActivity;
 import hcmute.edu.vn.selfalarmproject.views.fragments.HomeFragment;
@@ -243,6 +243,8 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.FOREGROUND_SERVICE,
                 Manifest.permission.ACCESS_WIFI_STATE,
                 Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.SCHEDULE_EXACT_ALARM,
+                Manifest.permission.USE_EXACT_ALARM
 
         };
         List<String> permissionsToRequest = new ArrayList<>();

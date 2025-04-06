@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.models.CalendarViewHolder;
 import hcmute.edu.vn.selfalarmproject.models.TaskModel;
 
 public class CalendarAdapter extends RecyclerView.Adapter<CalendarViewHolder> {

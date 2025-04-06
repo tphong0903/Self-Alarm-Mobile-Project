@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.controllers.service;
+package hcmute.edu.vn.selfalarmproject.controllers.services;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -18,9 +18,9 @@ import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ShareSongViewModel;
 import hcmute.edu.vn.selfalarmproject.views.MainActivity;
 import hcmute.edu.vn.selfalarmproject.views.fragments.MusicChildMainFragment;
+import hcmute.edu.vn.selfalarmproject.views.viewmodels.ShareSongViewModel;
 
 @UnstableApi
 public class MusicService extends Service {

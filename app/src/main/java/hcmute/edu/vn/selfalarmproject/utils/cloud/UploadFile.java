@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.cloud;
+package hcmute.edu.vn.selfalarmproject.utils.cloud;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 public class UploadFile {
     public interface UploadCallback {
         void onSuccess(String url);
+
         void onFailure(Exception e);
     }
 

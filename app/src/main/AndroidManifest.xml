@@ -80,7 +80,7 @@
             android:parentActivityName=".views.MainActivity" />
 
         <service
-            android:name=".controllers.service.CallScreenerService"
+            android:name=".controllers.services.CallScreenerService"
             android:exported="true"
             android:permission="android.permission.BIND_SCREENING_SERVICE">
             <intent-filter>
@@ -91,7 +91,7 @@
                 android:value="android.telecom.CallScreeningService.GENERAL_PURPOSE" />
         </service>
         <service
-            android:name=".controllers.service.SystemSettingsService"
+            android:name=".controllers.services.SystemSettingsService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
@@ -154,7 +154,7 @@
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
         <service
-            android:name=".controllers.service.MusicService"
+            android:name=".controllers.services.MusicService"
             android:foregroundServiceType="mediaPlayback" />
     </application>
 

@@ -22,8 +22,8 @@ import androidx.media3.exoplayer.ExoPlayer;
 import com.bumptech.glide.Glide;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ShareSongViewModel;
 import hcmute.edu.vn.selfalarmproject.models.SongModel;
+import hcmute.edu.vn.selfalarmproject.views.viewmodels.ShareSongViewModel;
 
 /**
  * A simple {@link Fragment} subclass.

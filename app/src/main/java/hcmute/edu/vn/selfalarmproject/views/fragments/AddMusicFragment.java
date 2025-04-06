@@ -36,8 +36,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hcmute.edu.vn.selfalarmproject.R;
-import hcmute.edu.vn.selfalarmproject.cloud.UploadFile;
 import hcmute.edu.vn.selfalarmproject.models.SongModel;
+import hcmute.edu.vn.selfalarmproject.utils.cloud.UploadFile;
 
 @OptIn(markerClass = UnstableApi.class)
 public class AddMusicFragment extends Fragment {

@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.controllers;
+package hcmute.edu.vn.selfalarmproject.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -13,7 +13,7 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.api.services.calendar.CalendarScopes;
 
-import hcmute.edu.vn.selfalarmproject.utils.SharedPreferencesHelper;
+import hcmute.edu.vn.selfalarmproject.BuildConfig;
 
 public class GoogleSignInManager {
     private static final String TAG = "GoogleSignInManager";
@@ -27,7 +27,7 @@ public class GoogleSignInManager {
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestScopes(new com.google.android.gms.common.api.Scope(CalendarScopes.CALENDAR))
-                .requestIdToken("634522600018-hljitpeajl1d02938trv731vqfab9th4.apps.googleusercontent.com")
+                .requestIdToken(BuildConfig.GOOGLE_API_KEY)
                 .build();
 
         googleSignInClient = GoogleSignIn.getClient(context, gso);

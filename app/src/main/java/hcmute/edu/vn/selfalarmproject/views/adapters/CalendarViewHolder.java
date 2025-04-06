@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.models;
+package hcmute.edu.vn.selfalarmproject.views.adapters;
 
 import android.view.View;
 import android.widget.TextView;
