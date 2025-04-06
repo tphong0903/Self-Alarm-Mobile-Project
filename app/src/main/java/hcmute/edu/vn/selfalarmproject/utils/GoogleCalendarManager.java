@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.controllers;
+package hcmute.edu.vn.selfalarmproject.utils;
 
 import static hcmute.edu.vn.selfalarmproject.views.MainActivity.account;
 
@@ -17,7 +17,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
 
-import hcmute.edu.vn.selfalarmproject.controllers.service.CalendarService;
+import hcmute.edu.vn.selfalarmproject.controllers.services.CalendarService;
 
 public class GoogleCalendarManager {
     private HttpTransport transport;

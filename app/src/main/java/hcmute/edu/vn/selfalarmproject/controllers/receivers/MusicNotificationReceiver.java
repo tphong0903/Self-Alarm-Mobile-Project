@@ -10,8 +10,8 @@ import androidx.media3.common.util.UnstableApi;
 
 import java.util.Objects;
 
-import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.controllers.services.MusicService;
+import hcmute.edu.vn.selfalarmproject.views.viewmodels.ShareSongViewModel;
 
 
 public class MusicNotificationReceiver extends BroadcastReceiver {

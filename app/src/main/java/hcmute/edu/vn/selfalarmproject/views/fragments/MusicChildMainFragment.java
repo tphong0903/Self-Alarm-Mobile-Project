@@ -43,12 +43,12 @@ import java.util.List;
 
 import hcmute.edu.vn.selfalarmproject.R;
 import hcmute.edu.vn.selfalarmproject.controllers.receivers.MusicNotificationReceiver;
-import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
+import hcmute.edu.vn.selfalarmproject.controllers.services.MusicService;
 import hcmute.edu.vn.selfalarmproject.models.SongModel;
 import hcmute.edu.vn.selfalarmproject.utils.ServiceUtils;
 import hcmute.edu.vn.selfalarmproject.views.MainActivity;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ShareSongViewModel;
 import hcmute.edu.vn.selfalarmproject.views.adapters.SongRecyclerAdapter;
+import hcmute.edu.vn.selfalarmproject.views.viewmodels.ShareSongViewModel;
 
 
 @UnstableApi

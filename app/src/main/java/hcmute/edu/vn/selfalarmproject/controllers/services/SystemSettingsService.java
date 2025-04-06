@@ -1,4 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.controllers.service;
+package hcmute.edu.vn.selfalarmproject.controllers.services;
 
 import android.accounts.AccountManager;
 import android.app.NotificationChannel;

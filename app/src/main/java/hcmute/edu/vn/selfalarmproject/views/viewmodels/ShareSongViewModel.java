@@ -1,6 +1,4 @@
-package hcmute.edu.vn.selfalarmproject.views.adapters;
-
-import android.media.MediaPlayer;
+package hcmute.edu.vn.selfalarmproject.views.viewmodels;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;

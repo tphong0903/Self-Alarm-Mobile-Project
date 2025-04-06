@@ -1,19 +1,28 @@
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     id("com.google.gms.google-services")
 }
-
+val configProps = Properties()
+val configFile = rootProject.file("local.properties")
+if (configFile.exists()) {
+    configProps.load(FileInputStream(configFile))
+}
 android {
     namespace = "hcmute.edu.vn.selfalarmproject"
     compileSdk = 35
-
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId = "hcmute.edu.vn.selfalarmproject"
-        minSdk = 26
+        minSdk = 33
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("String", "GOOGLE_API_KEY", "\"${configProps["GOOGLE_API_KEY"]}\"")
     }
     buildTypes {
         release {

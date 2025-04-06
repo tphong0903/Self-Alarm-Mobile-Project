@@ -11,8 +11,8 @@ import androidx.annotation.RequiresApi;
 import androidx.media3.common.util.UnstableApi;
 import androidx.media3.exoplayer.ExoPlayer;
 
-import hcmute.edu.vn.selfalarmproject.controllers.service.MusicService;
-import hcmute.edu.vn.selfalarmproject.views.adapters.ShareSongViewModel;
+import hcmute.edu.vn.selfalarmproject.controllers.services.MusicService;
+import hcmute.edu.vn.selfalarmproject.views.viewmodels.ShareSongViewModel;
 
 @UnstableApi
 public class HeadphoneReceiver extends BroadcastReceiver {
