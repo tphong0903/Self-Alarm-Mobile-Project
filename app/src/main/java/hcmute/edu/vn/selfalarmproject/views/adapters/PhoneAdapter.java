@@ -38,7 +38,7 @@ public class PhoneAdapter extends RecyclerView.Adapter<PhoneAdapter.ViewHolder> 
         holder.txtPhone.setText(contactPhone);
 
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_DIAL);
+            Intent intent = new Intent(Intent.ACTION_CALL);
             intent.setData(Uri.parse("tel:" + contactPhone));
             v.getContext().startActivity(intent);
         });
