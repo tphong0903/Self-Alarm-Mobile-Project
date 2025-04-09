@@ -2,9 +2,9 @@
 
 ## Nhóm thực hiện
 
-- Lê Thanh Phong - 22110198
-- Nguyễn Đăng Quang - 22110211
-- Trần Đinh Gia Bảo - 22110111
+- Lê Thanh Phong - 22110198 (Quản lý, thông báo sự kiện, đăng nhập Google, đồng bộ với Google Calendar)
+- Nguyễn Đăng Quang - 22110211 (Các chức năng liên quan đến danh bạ, tin nhắn, blacklist và tối ưu hóa theo phần trăm pin)
+- Trần Đinh Gia Bảo - 22110111 (Các chức năng liên quan đến phần phát nhạc)
 
 ## Tính năng chính
 
